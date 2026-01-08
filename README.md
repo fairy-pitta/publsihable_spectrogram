@@ -77,7 +77,10 @@ npm install
 npm run build:wasm
 ```
 
-**Note**: Running `npm install` is required, otherwise you'll get `vite: command not found` error.
+**Note**: 
+- Running `npm install` is required, otherwise you'll get `vite: command not found` error.
+- The WASM module must be built before running `npm run build` or `npm run dev`.
+- The `prebuild` script automatically builds WASM before TypeScript compilation.
 
 ### Development
 
