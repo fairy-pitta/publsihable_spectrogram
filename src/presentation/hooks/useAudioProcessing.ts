@@ -4,6 +4,7 @@ import { IAudioInput } from '@domain/interfaces/IAudioInput';
 import { AudioBuffer } from '@domain/entities/AudioBuffer';
 import { Spectrogram } from '@domain/entities/Spectrogram';
 import { STFTParameters } from '@domain/interfaces/ISTFTProcessor';
+import { ProcessorFactory } from '@infrastructure/factories/ProcessorFactory';
 
 /**
  * Custom hook for managing audio loading and processing
