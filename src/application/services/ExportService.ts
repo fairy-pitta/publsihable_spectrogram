@@ -1,10 +1,10 @@
 import { IRenderer } from '@domain/interfaces/IRenderer';
-import { SVGAnnotationLayer } from '@infrastructure/annotation/SVGAnnotationLayer';
+import { IAnnotationLayer } from '@domain/interfaces/IAnnotationLayer';
 
 export class ExportService {
   constructor(
     private renderer: IRenderer,
-    private annotationLayer: SVGAnnotationLayer
+    private annotationLayer: IAnnotationLayer
   ) {}
 
   async exportToPNG(dpi: number = 300): Promise<Blob> {

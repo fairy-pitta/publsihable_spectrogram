@@ -1,6 +1,7 @@
 import { Annotation, AnnotationType } from '@domain/entities/Annotation';
+import { IAnnotationLayer } from '@domain/interfaces/IAnnotationLayer';
 
-export class SVGAnnotationLayer {
+export class SVGAnnotationLayer implements IAnnotationLayer {
   private svg: SVGSVGElement;
   private annotationElements: Map<string, SVGElement> = new Map();
 

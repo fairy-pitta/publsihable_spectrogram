@@ -17,9 +17,12 @@ export function useAudioProcessing() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    AudioProcessingService.create().then(setAudioProcessingService).catch((err) => {
-      setError(err.message);
-    });
+    ProcessorFactory.createDefault()
+      .then((processor) => AudioProcessingService.create(processor))
+      .then(setAudioProcessingService)
+      .catch((err) => {
+        setError(err.message);
+      });
   }, []);
 
   const loadAudio = useCallback(async (input: IAudioInput) => {

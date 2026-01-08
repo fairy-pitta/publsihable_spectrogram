@@ -1,9 +1,9 @@
-import { useState, useCallback, useEffect, useRef } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { SpectrogramRenderService } from '@application/services/SpectrogramRenderService';
 import { AnnotationService } from '@application/services/AnnotationService';
 import { ExportService } from '@application/services/ExportService';
-import { CanvasSpectrogramRenderer } from '@infrastructure/renderer/CanvasSpectrogramRenderer';
-import { SVGAnnotationLayer } from '@infrastructure/annotation/SVGAnnotationLayer';
+import { RendererFactory } from '@infrastructure/factories/RendererFactory';
+import { IAnnotationLayer } from '@domain/interfaces/IAnnotationLayer';
 import { Spectrogram } from '@domain/entities/Spectrogram';
 import { RenderOptions } from '@domain/interfaces/IRenderer';
 import { Annotation } from '@domain/entities/Annotation';
@@ -18,12 +18,12 @@ export function useSpectrogram(canvasRef: React.RefObject<HTMLCanvasElement>, sv
   const [renderService, setRenderService] = useState<SpectrogramRenderService | null>(null);
   const [annotationService] = useState<AnnotationService>(() => new AnnotationService());
   const [exportService, setExportService] = useState<ExportService | null>(null);
-  const [annotationLayer, setAnnotationLayer] = useState<SVGAnnotationLayer | null>(null);
+  const [annotationLayer, setAnnotationLayer] = useState<IAnnotationLayer | null>(null);
 
   useEffect(() => {
     if (canvasRef.current && svgRef.current) {
-      const renderer = new CanvasSpectrogramRenderer(canvasRef.current);
-      const annotationLayerInstance = new SVGAnnotationLayer(svgRef.current);
+      const renderer = RendererFactory.createRenderer(canvasRef.current);
+      const annotationLayerInstance = RendererFactory.createAnnotationLayer(svgRef.current);
       const renderServiceInstance = new SpectrogramRenderService(renderer);
       const exportServiceInstance = new ExportService(renderer, annotationLayerInstance);
 

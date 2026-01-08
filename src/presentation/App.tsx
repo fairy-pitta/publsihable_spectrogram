@@ -4,7 +4,7 @@ import { ControlsPanel } from './components/ControlsPanel/ControlsPanel';
 import { AnnotationEditor } from './components/AnnotationEditor/AnnotationEditor';
 import { ExportDialog } from './components/ExportDialog/ExportDialog';
 import { useAudioProcessing } from './hooks/useAudioProcessing';
-import { FileAudioInput } from '@infrastructure/audio/FileAudioInput';
+import { AudioInputFactory } from '@infrastructure/factories/AudioInputFactory';
 import { STFTParameters } from '@domain/interfaces/ISTFTProcessor';
 import { RenderOptions } from '@domain/interfaces/IRenderer';
 import { AnnotationService } from '@application/services/AnnotationService';
@@ -57,8 +57,7 @@ function App() {
       const file = event.target.files?.[0];
       if (!file) return;
 
-      const fileInput = new FileAudioInput();
-      fileInput.setFile(file);
+      const fileInput = AudioInputFactory.createFileInput(file);
 
       try {
         await loadAudio(fileInput);
