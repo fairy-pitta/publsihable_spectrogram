@@ -81,6 +81,7 @@ export class SVGAnnotationLayer {
     hitArea.setAttribute('width', (estimatedWidth + padding * 2).toString());
     hitArea.setAttribute('height', (fontSize + padding * 2).toString());
     hitArea.setAttribute('fill', 'transparent');
+    hitArea.setAttribute('data-annotation-id', annotation.id); // Add annotation ID to hit area
     hitArea.style.pointerEvents = 'all';
     group.appendChild(hitArea);
 
@@ -127,6 +128,7 @@ export class SVGAnnotationLayer {
     line.setAttribute('y2', y2.toString());
     line.setAttribute('stroke', (annotation.properties.color as string) || '#000000');
     line.setAttribute('stroke-width', ((annotation.properties.width as number) || 2).toString());
+    line.setAttribute('data-annotation-id', annotation.id);
     line.style.cursor = 'move';
     line.style.pointerEvents = 'all';
     group.appendChild(line);
@@ -154,6 +156,7 @@ export class SVGAnnotationLayer {
     startHandle.setAttribute('fill', (annotation.properties.color as string) || '#000000');
     startHandle.setAttribute('stroke', '#ffffff');
     startHandle.setAttribute('stroke-width', '2');
+    startHandle.setAttribute('data-annotation-id', annotation.id);
     startHandle.setAttribute('data-arrow-end', 'start');
     startHandle.style.cursor = 'move';
     startHandle.style.pointerEvents = 'all';
@@ -167,6 +170,7 @@ export class SVGAnnotationLayer {
     endHandle.setAttribute('fill', (annotation.properties.color as string) || '#000000');
     endHandle.setAttribute('stroke', '#ffffff');
     endHandle.setAttribute('stroke-width', '2');
+    endHandle.setAttribute('data-annotation-id', annotation.id);
     endHandle.setAttribute('data-arrow-end', 'end');
     endHandle.style.cursor = 'move';
     endHandle.style.pointerEvents = 'all';

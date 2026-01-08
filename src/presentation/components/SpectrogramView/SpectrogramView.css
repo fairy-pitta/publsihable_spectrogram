@@ -33,7 +33,9 @@
 
 .spectrogram-annotations text,
 .spectrogram-annotations line,
-.spectrogram-annotations rect {
+.spectrogram-annotations rect,
+.spectrogram-annotations g,
+.spectrogram-annotations circle {
   pointer-events: all;
 }
 

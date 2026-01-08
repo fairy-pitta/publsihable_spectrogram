@@ -87,8 +87,17 @@ export function SpectrogramView({ spectrogram, renderOptions, onRender, onAnnota
 
     const handleMouseDown = (e: MouseEvent) => {
       const target = e.target as SVGElement;
-      const annotationId = target.getAttribute('data-annotation-id') || 
-                          (target.parentElement as SVGElement)?.getAttribute('data-annotation-id');
+      // Try to find annotation ID by traversing up the DOM tree
+      let annotationId: string | null = null;
+      let currentElement: SVGElement | null = target;
+      while (currentElement && !annotationId) {
+        annotationId = currentElement.getAttribute('data-annotation-id');
+        if (!annotationId && currentElement.parentElement) {
+          currentElement = currentElement.parentElement as SVGElement;
+        } else {
+          break;
+        }
+      }
       
       // Check if this is an arrow end handle
       const arrowEnd = target.getAttribute('data-arrow-end') as 'start' | 'end' | null;
