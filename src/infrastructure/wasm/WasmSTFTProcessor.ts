@@ -72,14 +72,25 @@ export class WasmSTFTProcessor implements ISTFTProcessor {
     // Ensure data matches expected dimensions
     const expectedLength = finalNFreqBins * nTimeFrames;
     if (finalData.length !== expectedLength) {
+      // Fill missing values with dbMin (not 0dB) to avoid showing max-color artifacts.
       const correctedData = new Float32Array(expectedLength);
+      correctedData.fill(params.dbMin);
       const copyLength = Math.min(finalData.length, expectedLength);
       correctedData.set(finalData.subarray(0, copyLength));
       finalData = correctedData;
     }
 
+    // WASM output is time-major: [t0(f0..fN), t1(f0..fN), ...]
+    // Domain `Spectrogram` expects freq-major: [f0(t0..tN), f1(t0..tN), ...]
+    const freqMajorData = new Float32Array(expectedLength);
+    for (let t = 0; t < nTimeFrames; t++) {
+      for (let f = 0; f < finalNFreqBins; f++) {
+        freqMajorData[f * nTimeFrames + t] = finalData[t * finalNFreqBins + f];
+      }
+    }
+
     return new Spectrogram(
-      finalData,
+      freqMajorData,
       finalNFreqBins,
       nTimeFrames,
       audioBuffer.sampleRate,
