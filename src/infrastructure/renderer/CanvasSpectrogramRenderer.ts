@@ -45,33 +45,19 @@ export class CanvasSpectrogramRenderer implements IRenderer {
       displayWidth = Math.max(displayWidth, 100);
       displayHeight = Math.max(displayHeight, 100);
       
-      // Setup high DPI canvas
-      const physicalWidth = Math.floor(displayWidth * this.dpr);
-      const physicalHeight = Math.floor(displayHeight * this.dpr);
-      
-      if (this.canvas.width !== physicalWidth || this.canvas.height !== physicalHeight) {
+      // Setup canvas size (simplified - high DPI can be re-enabled later if needed)
+      if (this.canvas.width !== displayWidth || this.canvas.height !== displayHeight) {
         // Reset transform to avoid accumulation
         ctx.setTransform(1, 0, 0, 1, 0, 0);
         
-        // Set actual canvas size in memory (physical pixels)
-        this.canvas.width = physicalWidth;
-        this.canvas.height = physicalHeight;
-        
-        // Scale context to match device pixel ratio
-        ctx.scale(this.dpr, this.dpr);
-        
-        // Set display size (CSS pixels) - only if not already set
-        if (!this.canvas.style.width) {
-          this.canvas.style.width = `${displayWidth}px`;
-        }
-        if (!this.canvas.style.height) {
-          this.canvas.style.height = `${displayHeight}px`;
-        }
+        // Set canvas size
+        this.canvas.width = displayWidth;
+        this.canvas.height = displayHeight;
       }
       
-      // Use display dimensions for rendering calculations
-      const width = displayWidth;
-      const height = displayHeight;
+      // Use canvas dimensions for rendering calculations
+      const width = this.canvas.width;
+      const height = this.canvas.height;
 
       // Clear canvas
       ctx.clearRect(0, 0, width, height);
