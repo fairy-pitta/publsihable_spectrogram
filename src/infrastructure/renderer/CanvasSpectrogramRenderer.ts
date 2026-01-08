@@ -514,7 +514,34 @@ export class CanvasSpectrogramRenderer implements IRenderer {
   async exportToPNG(dpi: number = 300): Promise<Blob> {
     return new Promise((resolve, reject) => {
       try {
-        this.canvas.toBlob(
+        // Calculate scale factor based on DPI
+        // Standard screen DPI is 96, so scale = targetDPI / 96
+        const scale = dpi / 96;
+        
+        // Get current canvas dimensions
+        const displayWidth = this.canvas.width;
+        const displayHeight = this.canvas.height;
+        
+        // Create a temporary canvas for high-resolution export
+        const exportCanvas = document.createElement('canvas');
+        exportCanvas.width = displayWidth * scale;
+        exportCanvas.height = displayHeight * scale;
+        
+        const exportCtx = exportCanvas.getContext('2d');
+        if (!exportCtx) {
+          reject(new Error('Failed to get 2D context for export canvas'));
+          return;
+        }
+        
+        // Enable high-quality rendering
+        exportCtx.imageSmoothingEnabled = true;
+        exportCtx.imageSmoothingQuality = 'high';
+        
+        // Draw the current canvas scaled up
+        exportCtx.drawImage(this.canvas, 0, 0, exportCanvas.width, exportCanvas.height);
+        
+        // Export the scaled canvas
+        exportCanvas.toBlob(
           (blob) => {
             if (blob) {
               resolve(blob);

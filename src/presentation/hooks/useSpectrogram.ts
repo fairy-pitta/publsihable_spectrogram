@@ -151,6 +151,7 @@ export function useSpectrogram(canvasRef: React.RefObject<HTMLCanvasElement>, sv
     downloadSVG,
     annotations: annotationService.getAnnotations(),
     annotationService,
+    exportService,
     isReady: renderService !== null && exportService !== null,
   };
 }

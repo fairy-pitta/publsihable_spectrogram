@@ -3,6 +3,7 @@ import { Spectrogram } from '@domain/entities/Spectrogram';
 import { useSpectrogram } from '../../hooks/useSpectrogram';
 import { RenderOptions } from '@domain/interfaces/IRenderer';
 import { AnnotationService } from '@application/services/AnnotationService';
+import { ExportService } from '@application/services/ExportService';
 import { Annotation, AnnotationType } from '@domain/entities/Annotation';
 import './SpectrogramView.css';
 
@@ -14,12 +15,13 @@ interface SpectrogramViewProps {
   onAddAnnotationReady?: (addAnnotation: (annotation: Annotation) => void) => void;
   onUpdateAnnotationReady?: (updateAnnotation: (annotation: Annotation) => void) => void;
   onCenterReady?: (center: { x: number; y: number }) => void;
+  onExportServiceReady?: (exportService: any) => void;
 }
 
-export function SpectrogramView({ spectrogram, renderOptions, onRender, onAnnotationServiceReady, onAddAnnotationReady, onUpdateAnnotationReady, onCenterReady }: SpectrogramViewProps) {
+export function SpectrogramView({ spectrogram, renderOptions, onRender, onAnnotationServiceReady, onAddAnnotationReady, onUpdateAnnotationReady, onCenterReady, onExportServiceReady }: SpectrogramViewProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const svgRef = useRef<SVGSVGElement>(null);
-  const { render, updateAnnotation, annotationService, addAnnotation } = useSpectrogram(canvasRef, svgRef);
+  const { render, updateAnnotation, annotationService, addAnnotation, exportService } = useSpectrogram(canvasRef, svgRef);
   const dragStateRef = useRef<{ 
     annotationId: string | null; 
     offsetX: number; 
@@ -44,6 +46,12 @@ export function SpectrogramView({ spectrogram, renderOptions, onRender, onAnnota
       onUpdateAnnotationReady(updateAnnotation);
     }
   }, [updateAnnotation, onUpdateAnnotationReady]);
+
+  useEffect(() => {
+    if (exportService && onExportServiceReady) {
+      onExportServiceReady(exportService);
+    }
+  }, [exportService, onExportServiceReady]);
 
   useEffect(() => {
     if (spectrogram && canvasRef.current && svgRef.current) {

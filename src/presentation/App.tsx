@@ -8,6 +8,7 @@ import { FileAudioInput } from '@infrastructure/audio/FileAudioInput';
 import { STFTParameters } from '@domain/interfaces/ISTFTProcessor';
 import { RenderOptions } from '@domain/interfaces/IRenderer';
 import { AnnotationService } from '@application/services/AnnotationService';
+import { ExportService } from '@application/services/ExportService';
 import { Annotation } from '@domain/entities/Annotation';
 import './App.css';
 
@@ -40,6 +41,7 @@ function App() {
 
   const [showExportDialog, setShowExportDialog] = useState(false);
   const [annotationService, setAnnotationService] = useState<AnnotationService | null>(null);
+  const [exportService, setExportService] = useState<ExportService | null>(null);
   const [addAnnotation, setAddAnnotation] = useState<((annotation: Annotation) => void) | null>(null);
   const [updateAnnotation, setUpdateAnnotation] = useState<((annotation: Annotation) => void) | null>(null);
   const [spectrogramCenter, setSpectrogramCenter] = useState<{ x: number; y: number } | null>(null);
@@ -142,6 +144,7 @@ function App() {
               spectrogram={spectrogram}
               renderOptions={renderOptions}
               onAnnotationServiceReady={setAnnotationService}
+              onExportServiceReady={setExportService}
               onAddAnnotationReady={setAddAnnotation}
               onUpdateAnnotationReady={setUpdateAnnotation}
               onCenterReady={setSpectrogramCenter}
@@ -175,7 +178,7 @@ function App() {
       <ExportDialog
         isOpen={showExportDialog}
         onClose={() => setShowExportDialog(false)}
-        exportService={null}
+        exportService={exportService}
       />
     </div>
   );
