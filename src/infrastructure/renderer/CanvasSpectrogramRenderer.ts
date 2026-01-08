@@ -59,8 +59,20 @@ export class CanvasSpectrogramRenderer implements IRenderer {
       const width = this.canvas.width;
       const height = this.canvas.height;
 
-      // Clear canvas
-      ctx.clearRect(0, 0, width, height);
+      // Fill canvas with white background first
+      ctx.fillStyle = '#FFFFFF';
+      ctx.fillRect(0, 0, width, height);
+      
+      // Validate spectrogram data
+      if (!spectrogram || !spectrogram.data || spectrogram.data.length === 0) {
+        console.warn('Invalid spectrogram data:', spectrogram);
+        return;
+      }
+      
+      if (spectrogram.nFreqBins === 0 || spectrogram.nTimeFrames === 0) {
+        console.warn('Spectrogram has zero dimensions:', spectrogram);
+        return;
+      }
 
     // Calculate rendering area (leave space for axes and colorbar)
     const marginLeft = options.showAxes ? 60 : 0;
@@ -80,17 +92,19 @@ export class CanvasSpectrogramRenderer implements IRenderer {
     // Calculate actual data range from spectrogram
     let actualMinDb = Infinity;
     let actualMaxDb = -Infinity;
+    let validDataCount = 0;
     for (let i = 0; i < spectrogram.data.length; i++) {
       const value = spectrogram.data[i];
       if (Number.isFinite(value)) {
         actualMinDb = Math.min(actualMinDb, value);
         actualMaxDb = Math.max(actualMaxDb, value);
+        validDataCount++;
       }
     }
     
     // Use actual data range if it's valid, otherwise fall back to options
-    const minDb = Number.isFinite(actualMinDb) ? actualMinDb : options.dbMin;
-    const maxDb = Number.isFinite(actualMaxDb) ? actualMaxDb : options.dbMax;
+    const minDb = Number.isFinite(actualMinDb) && validDataCount > 0 ? actualMinDb : options.dbMin;
+    const maxDb = Number.isFinite(actualMaxDb) && validDataCount > 0 ? actualMaxDb : options.dbMax;
     const dbRange = maxDb - minDb;
     
     const smoothing = options.smoothing ?? 0.0;

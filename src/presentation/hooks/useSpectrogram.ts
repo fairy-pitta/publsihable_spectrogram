@@ -93,6 +93,9 @@ export function useSpectrogram(canvasRef: React.RefObject<HTMLCanvasElement>, sv
   }, [annotationService, renderService, annotationLayer]);
 
   const updateAnnotation = useCallback((annotation: Annotation) => {
+    if (!annotation) {
+      return;
+    }
     annotationService.updateAnnotation(annotation);
     renderService?.addAnnotation(annotation);
     annotationLayer?.updateAnnotation(annotation);

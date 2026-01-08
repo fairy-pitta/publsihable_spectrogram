@@ -24,6 +24,9 @@ export class AnnotationService {
   }
 
   updateAnnotation(annotation: Annotation): void {
+    if (!annotation || !annotation.id) {
+      return;
+    }
     if (this.annotations.has(annotation.id)) {
       this.annotations.set(annotation.id, annotation);
     }

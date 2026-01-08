@@ -41,6 +41,7 @@ function App() {
   const [showExportDialog, setShowExportDialog] = useState(false);
   const [annotationService, setAnnotationService] = useState<AnnotationService | null>(null);
   const [addAnnotation, setAddAnnotation] = useState<((annotation: Annotation) => void) | null>(null);
+  const [updateAnnotation, setUpdateAnnotation] = useState<((annotation: Annotation) => void) | null>(null);
   const [spectrogramCenter, setSpectrogramCenter] = useState<{ x: number; y: number } | null>(null);
 
   const handleFileUpload = useCallback(
@@ -129,6 +130,7 @@ function App() {
               renderOptions={renderOptions}
               onAnnotationServiceReady={setAnnotationService}
               onAddAnnotationReady={setAddAnnotation}
+              onUpdateAnnotationReady={setUpdateAnnotation}
               onCenterReady={setSpectrogramCenter}
             />
           ) : (
@@ -141,6 +143,7 @@ function App() {
         <AnnotationEditor 
           annotationService={annotationService}
           addAnnotation={addAnnotation}
+          updateAnnotation={updateAnnotation}
           spectrogramCenter={spectrogramCenter}
         />
       </div>

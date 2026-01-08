@@ -23,4 +23,8 @@ export class Annotation {
   withPosition(newPosition: { x: number; y: number }): Annotation {
     return new Annotation(this.type, newPosition, this.properties, this.id);
   }
+
+  withProperties(newProperties: AnnotationProperties): Annotation {
+    return new Annotation(this.type, this.position, { ...this.properties, ...newProperties }, this.id);
+  }
 }

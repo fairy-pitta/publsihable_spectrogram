@@ -3,7 +3,7 @@ import { Spectrogram } from '@domain/entities/Spectrogram';
 import { useSpectrogram } from '../../hooks/useSpectrogram';
 import { RenderOptions } from '@domain/interfaces/IRenderer';
 import { AnnotationService } from '@application/services/AnnotationService';
-import { Annotation } from '@domain/entities/Annotation';
+import { Annotation, AnnotationType } from '@domain/entities/Annotation';
 import './SpectrogramView.css';
 
 interface SpectrogramViewProps {
@@ -12,14 +12,20 @@ interface SpectrogramViewProps {
   onRender?: () => void;
   onAnnotationServiceReady?: (annotationService: AnnotationService) => void;
   onAddAnnotationReady?: (addAnnotation: (annotation: Annotation) => void) => void;
+  onUpdateAnnotationReady?: (updateAnnotation: (annotation: Annotation) => void) => void;
   onCenterReady?: (center: { x: number; y: number }) => void;
 }
 
-export function SpectrogramView({ spectrogram, renderOptions, onRender, onAnnotationServiceReady, onAddAnnotationReady, onCenterReady }: SpectrogramViewProps) {
+export function SpectrogramView({ spectrogram, renderOptions, onRender, onAnnotationServiceReady, onAddAnnotationReady, onUpdateAnnotationReady, onCenterReady }: SpectrogramViewProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const svgRef = useRef<SVGSVGElement>(null);
   const { render, updateAnnotation, annotationService, addAnnotation } = useSpectrogram(canvasRef, svgRef);
-  const dragStateRef = useRef<{ annotationId: string | null; offsetX: number; offsetY: number } | null>(null);
+  const dragStateRef = useRef<{ 
+    annotationId: string | null; 
+    offsetX: number; 
+    offsetY: number;
+    isArrowEnd?: 'start' | 'end' | null;
+  } | null>(null);
 
   useEffect(() => {
     if (annotationService && onAnnotationServiceReady) {
@@ -32,6 +38,12 @@ export function SpectrogramView({ spectrogram, renderOptions, onRender, onAnnota
       onAddAnnotationReady(addAnnotation);
     }
   }, [addAnnotation, onAddAnnotationReady]);
+
+  useEffect(() => {
+    if (updateAnnotation && onUpdateAnnotationReady) {
+      onUpdateAnnotationReady(updateAnnotation);
+    }
+  }, [updateAnnotation, onUpdateAnnotationReady]);
 
   useEffect(() => {
     if (spectrogram && canvasRef.current && svgRef.current) {
@@ -78,13 +90,27 @@ export function SpectrogramView({ spectrogram, renderOptions, onRender, onAnnota
       const annotationId = target.getAttribute('data-annotation-id') || 
                           (target.parentElement as SVGElement)?.getAttribute('data-annotation-id');
       
+      // Check if this is an arrow end handle
+      const arrowEnd = target.getAttribute('data-arrow-end') as 'start' | 'end' | null;
+      
       if (annotationId) {
         const annotation = annotationService.getAnnotation(annotationId);
         if (annotation) {
           const svgRect = svg.getBoundingClientRect();
-          const offsetX = e.clientX - svgRect.left - annotation.position.x;
-          const offsetY = e.clientY - svgRect.top - annotation.position.y;
-          dragStateRef.current = { annotationId, offsetX, offsetY };
+          
+          if (arrowEnd && annotation.type === AnnotationType.Arrow) {
+            // Dragging an arrow end handle
+            const x = arrowEnd === 'start' ? annotation.position.x : (annotation.properties.x2 as number);
+            const y = arrowEnd === 'start' ? annotation.position.y : (annotation.properties.y2 as number);
+            const offsetX = e.clientX - svgRect.left - x;
+            const offsetY = e.clientY - svgRect.top - y;
+            dragStateRef.current = { annotationId, offsetX, offsetY, isArrowEnd: arrowEnd };
+          } else {
+            // Dragging the entire annotation
+            const offsetX = e.clientX - svgRect.left - annotation.position.x;
+            const offsetY = e.clientY - svgRect.top - annotation.position.y;
+            dragStateRef.current = { annotationId, offsetX, offsetY, isArrowEnd: null };
+          }
           e.preventDefault();
         }
       }
@@ -97,9 +123,23 @@ export function SpectrogramView({ spectrogram, renderOptions, onRender, onAnnota
         const newY = e.clientY - svgRect.top - dragStateRef.current.offsetY;
         
         const annotation = annotationService.getAnnotation(dragStateRef.current.annotationId);
-        if (annotation) {
-          const updatedAnnotation = annotation.withPosition({ x: newX, y: newY });
-          updateAnnotation(updatedAnnotation);
+        if (annotation && updateAnnotation) {
+          if (dragStateRef.current.isArrowEnd && annotation.type === AnnotationType.Arrow) {
+            // Update arrow end position
+            if (dragStateRef.current.isArrowEnd === 'start') {
+              // Update start position (annotation.position)
+              const updatedAnnotation = annotation.withPosition({ x: newX, y: newY });
+              updateAnnotation(updatedAnnotation);
+            } else {
+              // Update end position (x2, y2)
+              const updatedAnnotation = annotation.withProperties({ x2: newX, y2: newY });
+              updateAnnotation(updatedAnnotation);
+            }
+          } else {
+            // Update entire annotation position
+            const updatedAnnotation = annotation.withPosition({ x: newX, y: newY });
+            updateAnnotation(updatedAnnotation);
+          }
         }
       }
     };
