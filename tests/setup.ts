@@ -73,9 +73,6 @@ if (typeof HTMLCanvasElement !== 'undefined') {
           width: 800,
           height: 600,
         }),
-        toBlob: (callback: (blob: Blob | null) => void) => {
-          callback(new Blob([''], { type: 'image/png' }));
-        },
       };
       return mockCtx as any;
     }
@@ -84,6 +81,28 @@ if (typeof HTMLCanvasElement !== 'undefined') {
     }
     return null;
   };
+  
+  // Polyfill toBlob and toDataURL for HTMLCanvasElement
+  if (!HTMLCanvasElement.prototype.toBlob) {
+    HTMLCanvasElement.prototype.toBlob = function(
+      callback: (blob: Blob | null) => void,
+      type?: string,
+      quality?: number
+    ) {
+      // Use setTimeout to make it async like the real implementation
+      setTimeout(() => {
+        const blob = new Blob([''], { type: type || 'image/png' });
+        callback(blob);
+      }, 0);
+    };
+  }
+  
+  if (!HTMLCanvasElement.prototype.toDataURL) {
+    HTMLCanvasElement.prototype.toDataURL = function(type?: string, quality?: number): string {
+      // Return a minimal data URL
+      return 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==';
+    };
+  }
 }
 
 expect.extend(matchers);

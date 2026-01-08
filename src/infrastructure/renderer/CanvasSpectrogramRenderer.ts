@@ -288,10 +288,21 @@ export class CanvasSpectrogramRenderer implements IRenderer {
   }
 
   async exportToPNG(dpi: number = 300): Promise<Blob> {
-    return new Promise((resolve) => {
-      this.canvas.toBlob((blob) => {
-        resolve(blob || new Blob());
-      }, 'image/png');
+    return new Promise((resolve, reject) => {
+      try {
+        this.canvas.toBlob(
+          (blob) => {
+            if (blob) {
+              resolve(blob);
+            } else {
+              reject(new Error('Failed to export canvas to blob'));
+            }
+          },
+          'image/png'
+        );
+      } catch (error) {
+        reject(error);
+      }
     });
   }
 }
