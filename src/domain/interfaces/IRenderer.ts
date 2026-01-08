@@ -10,6 +10,8 @@ export interface RenderOptions {
   showColorbar: boolean;
   dbMin: number;
   dbMax: number;
+  smoothing?: number; // Smoothing factor (0.0 to 1.0)
+  oversampling?: boolean; // Enable oversampling
   timeMin?: number; // Minimum time in seconds (optional)
   timeMax?: number; // Maximum time in seconds (optional)
   freqMin?: number; // Minimum frequency in Hz (optional)
