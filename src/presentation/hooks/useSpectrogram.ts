@@ -104,25 +104,6 @@ export function useSpectrogram(canvasRef: React.RefObject<HTMLCanvasElement>, sv
     annotationLayer?.clearAnnotations();
   }, [annotationService, renderService, annotationLayer]);
 
-  const exportToPNG = useCallback(async (dpi: number = 300) => {
-    if (!exportService) throw new Error('Export service not available');
-    return exportService.exportToPNG(dpi);
-  }, [exportService]);
-
-  const exportToSVG = useCallback(() => {
-    if (!exportService) throw new Error('Export service not available');
-    return exportService.exportToSVG();
-  }, [exportService]);
-
-  const downloadPNG = useCallback(async (filename: string = 'spectrogram.png', dpi: number = 300) => {
-    if (!exportService) throw new Error('Export service not available');
-    return exportService.downloadPNG(filename, dpi);
-  }, [exportService]);
-
-  const downloadSVG = useCallback((filename: string = 'spectrogram.svg') => {
-    if (!exportService) throw new Error('Export service not available');
-    return exportService.downloadSVG(filename);
-  }, [exportService]);
 
   return {
     render,
