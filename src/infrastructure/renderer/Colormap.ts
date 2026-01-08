@@ -2,7 +2,7 @@ export type ColormapType = 'viridis' | 'magma' | 'grayscale';
 
 export class Colormap {
   static viridis(t: number): [number, number, number] {
-    return this.viridisImproved(t);
+    return Colormap.viridisImproved(t);
   }
 
   static magma(t: number): [number, number, number] {
