@@ -48,12 +48,14 @@
 ### インストール
 
 ```bash
-# 依存関係のインストール
+# 1. 依存関係のインストール（最初に実行）
 npm install
 
-# WASMモジュールのビルド
+# 2. WASMモジュールのビルド（npm installの後）
 npm run build:wasm
 ```
+
+**注意**: `npm install`を実行しないと、`vite: command not found`エラーが発生します。
 
 ### 開発
 
