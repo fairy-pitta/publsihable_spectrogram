@@ -28,5 +28,8 @@ dist-ssr
 wasm/target
 wasm/pkg
 wasm/Cargo.lock
-src/infrastructure/wasm/pkg
+src/infrastructure/wasm/pkg/*
+!src/infrastructure/wasm/pkg/spectrogram_wasm.d.ts
+!src/infrastructure/wasm/pkg/package.json
+!src/infrastructure/wasm/pkg/.gitkeep
 
