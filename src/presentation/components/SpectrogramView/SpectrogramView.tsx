@@ -19,10 +19,11 @@ export function SpectrogramView({ spectrogram, renderOptions, onRender }: Spectr
     if (spectrogram && canvasRef.current && svgRef.current) {
       const updateCanvasSize = () => {
         if (canvasRef.current && svgRef.current) {
-          canvasRef.current.width = canvasRef.current.offsetWidth;
-          canvasRef.current.height = canvasRef.current.offsetHeight;
-          svgRef.current.setAttribute('width', canvasRef.current.width.toString());
-          svgRef.current.setAttribute('height', canvasRef.current.height.toString());
+          // Let CanvasSpectrogramRenderer handle high DPI setup
+          // Just ensure SVG matches canvas display size
+          const rect = canvasRef.current.getBoundingClientRect();
+          svgRef.current.setAttribute('width', rect.width.toString());
+          svgRef.current.setAttribute('height', rect.height.toString());
         }
       };
 

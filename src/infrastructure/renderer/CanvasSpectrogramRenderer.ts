@@ -20,39 +20,21 @@ export class CanvasSpectrogramRenderer implements IRenderer {
     ctx.imageSmoothingQuality = 'high';
     this.context = ctx;
     
-    // Setup high DPI support
-    this.setupHighDPICanvas(canvas);
-  }
-
-  private setupHighDPICanvas(canvas: HTMLCanvasElement): void {
+    // Setup high DPI support (defer until canvas is in DOM)
     this.dpr = window.devicePixelRatio || 1;
-    const updateCanvasSize = () => {
-      const rect = canvas.getBoundingClientRect();
-      
-      // Set actual canvas size in memory (physical pixels)
-      canvas.width = rect.width * this.dpr;
-      canvas.height = rect.height * this.dpr;
-      
-      // Scale context to match device pixel ratio
-      this.context.scale(this.dpr, this.dpr);
-      
-      // Set display size (CSS pixels)
-      canvas.style.width = `${rect.width}px`;
-      canvas.style.height = `${rect.height}px`;
-    };
-    
-    // Initial setup
-    updateCanvasSize();
-    
-    // Update on resize
-    window.addEventListener('resize', updateCanvasSize);
+    // Don't setup immediately - let SpectrogramView handle initial sizing
   }
 
   render(spectrogram: Spectrogram, options: RenderOptions): void {
     const ctx = this.context;
-    // Account for device pixel ratio in canvas dimensions
-    const width = this.canvas.width / this.dpr;
-    const height = this.canvas.height / this.dpr;
+    
+    // Setup high DPI canvas if not already done
+    this.setupHighDPICanvas();
+    
+    // Use CSS dimensions (canvas is already scaled by dpr)
+    const rect = this.canvas.getBoundingClientRect();
+    const width = rect.width || this.canvas.width / this.dpr;
+    const height = rect.height || this.canvas.height / this.dpr;
 
     // Clear canvas
     ctx.clearRect(0, 0, width, height);
@@ -132,6 +114,37 @@ export class CanvasSpectrogramRenderer implements IRenderer {
 
     // Draw annotations
     this.drawAnnotations(ctx);
+  }
+
+  private setupHighDPICanvas(): void {
+    const rect = this.canvas.getBoundingClientRect();
+    if (rect.width === 0 || rect.height === 0) {
+      // Canvas not yet in DOM or has no size
+      return;
+    }
+    
+    // Only setup once or if size changed
+    const expectedWidth = rect.width * this.dpr;
+    const expectedHeight = rect.height * this.dpr;
+    
+    if (this.canvas.width !== expectedWidth || this.canvas.height !== expectedHeight) {
+      // Save current transform
+      ctx.save();
+      
+      // Reset transform
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      
+      // Set actual canvas size in memory (physical pixels)
+      this.canvas.width = expectedWidth;
+      this.canvas.height = expectedHeight;
+      
+      // Scale context to match device pixel ratio
+      ctx.scale(this.dpr, this.dpr);
+      
+      // Set display size (CSS pixels)
+      this.canvas.style.width = `${rect.width}px`;
+      this.canvas.style.height = `${rect.height}px`;
+    }
   }
 
   private bilinearInterpolation(
