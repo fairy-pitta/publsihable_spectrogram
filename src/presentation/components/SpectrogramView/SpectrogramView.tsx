@@ -26,6 +26,7 @@ export function SpectrogramView({ spectrogram, renderOptions, onRender, onAnnota
     offsetX: number; 
     offsetY: number;
     isArrowEnd?: 'start' | 'end' | null;
+    pointerId?: number | null;
   } | null>(null);
 
   useEffect(() => {
@@ -91,9 +92,9 @@ export function SpectrogramView({ spectrogram, renderOptions, onRender, onAnnota
   useEffect(() => {
     const svg = svgRef.current;
     if (!svg) return;
+    if (!annotationService) return;
 
-    const handleMouseDown = (e: MouseEvent) => {
-      const target = e.target as SVGElement;
+    const getAnnotationIdFromTarget = (target: Element) => {
       // Try to find annotation ID by traversing up the DOM tree
       let annotationId: string | null = null;
       let currentElement: Element | null = target;
@@ -105,9 +106,18 @@ export function SpectrogramView({ spectrogram, renderOptions, onRender, onAnnota
           break;
         }
       }
+      return annotationId;
+    };
+
+    const handlePointerDown = (e: PointerEvent) => {
+      const target = e.target as Element | null;
+      if (!target) return;
+      if (!annotationService) return;
+
+      const annotationId = getAnnotationIdFromTarget(target);
       
       // Check if this is an arrow end handle
-      const arrowEnd = target.getAttribute('data-arrow-end') as 'start' | 'end' | null;
+      const arrowEnd = (target as Element).getAttribute('data-arrow-end') as 'start' | 'end' | null;
       
       if (annotationId) {
         const annotation = annotationService.getAnnotation(annotationId);
@@ -120,20 +130,31 @@ export function SpectrogramView({ spectrogram, renderOptions, onRender, onAnnota
             const y = arrowEnd === 'start' ? annotation.position.y : Number(annotation.properties.y2 || 0);
             const offsetX = e.clientX - svgRect.left - x;
             const offsetY = e.clientY - svgRect.top - y;
-            dragStateRef.current = { annotationId, offsetX, offsetY, isArrowEnd: arrowEnd };
+            dragStateRef.current = { annotationId, offsetX, offsetY, isArrowEnd: arrowEnd, pointerId: e.pointerId };
           } else {
             // Dragging the entire annotation
             const offsetX = e.clientX - svgRect.left - annotation.position.x;
             const offsetY = e.clientY - svgRect.top - annotation.position.y;
-            dragStateRef.current = { annotationId, offsetX, offsetY, isArrowEnd: null };
+            dragStateRef.current = { annotationId, offsetX, offsetY, isArrowEnd: null, pointerId: e.pointerId };
           }
+
+          // Capture pointer so dragging continues outside element.
+          try {
+            svg.setPointerCapture(e.pointerId);
+          } catch {
+            // Some browsers may throw if capture not possible; ignore.
+          }
+
           e.preventDefault();
         }
       }
     };
 
-    const handleMouseMove = (e: MouseEvent) => {
+    const handlePointerMove = (e: PointerEvent) => {
       if (dragStateRef.current && svg) {
+        if (dragStateRef.current.pointerId != null && dragStateRef.current.pointerId !== e.pointerId) {
+          return;
+        }
         const svgRect = svg.getBoundingClientRect();
         const newX = e.clientX - svgRect.left - dragStateRef.current.offsetX;
         const newY = e.clientY - svgRect.top - dragStateRef.current.offsetY;
@@ -141,6 +162,7 @@ export function SpectrogramView({ spectrogram, renderOptions, onRender, onAnnota
         const annotationId = dragStateRef.current.annotationId;
         if (!annotationId) return;
         
+        if (!annotationService) return;
         const annotation = annotationService.getAnnotation(annotationId);
         if (annotation && updateAnnotation) {
           if (dragStateRef.current.isArrowEnd && annotation.type === AnnotationType.Arrow) {
@@ -160,21 +182,35 @@ export function SpectrogramView({ spectrogram, renderOptions, onRender, onAnnota
             updateAnnotation(updatedAnnotation);
           }
         }
+
+        e.preventDefault();
       }
     };
 
-    const handleMouseUp = () => {
+    const stopDragging = (pointerId?: number) => {
+      if (pointerId != null) {
+        try {
+          svg.releasePointerCapture(pointerId);
+        } catch {
+          // ignore
+        }
+      }
       dragStateRef.current = null;
     };
 
-    svg.addEventListener('mousedown', handleMouseDown);
-    document.addEventListener('mousemove', handleMouseMove);
-    document.addEventListener('mouseup', handleMouseUp);
+    const handlePointerUp = (e: PointerEvent) => stopDragging(e.pointerId);
+    const handlePointerCancel = (e: PointerEvent) => stopDragging(e.pointerId);
+
+    svg.addEventListener('pointerdown', handlePointerDown, { passive: false });
+    svg.addEventListener('pointermove', handlePointerMove, { passive: false });
+    svg.addEventListener('pointerup', handlePointerUp);
+    svg.addEventListener('pointercancel', handlePointerCancel);
 
     return () => {
-      svg.removeEventListener('mousedown', handleMouseDown);
-      document.removeEventListener('mousemove', handleMouseMove);
-      document.removeEventListener('mouseup', handleMouseUp);
+      svg.removeEventListener('pointerdown', handlePointerDown);
+      svg.removeEventListener('pointermove', handlePointerMove);
+      svg.removeEventListener('pointerup', handlePointerUp);
+      svg.removeEventListener('pointercancel', handlePointerCancel);
     };
   }, [updateAnnotation, annotationService]);
 

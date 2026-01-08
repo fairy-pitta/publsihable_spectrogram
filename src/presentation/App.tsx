@@ -52,6 +52,16 @@ function App() {
   const [controlsPanelCollapsed, setControlsPanelCollapsed] = useState(false);
   const [annotationEditorCollapsed, setAnnotationEditorCollapsed] = useState(false);
 
+  // Mobile-first: start with panels collapsed on small screens.
+  React.useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const mq = window.matchMedia('(max-width: 900px)');
+    if (mq.matches) {
+      setControlsPanelCollapsed(true);
+      setAnnotationEditorCollapsed(true);
+    }
+  }, []);
+
   const handleFileUpload = useCallback(
     async (event: React.ChangeEvent<HTMLInputElement>) => {
       const file = event.target.files?.[0];
