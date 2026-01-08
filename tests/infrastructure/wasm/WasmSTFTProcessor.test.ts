@@ -41,11 +41,12 @@ vi.mock('@infrastructure/wasm/pkg/spectrogram_wasm', () => ({
       _sampleRate: number,
       _fmin: number,
       _fmax: number
-    ): Float32Array[] {
+    ): Float32Array {
       const nBins = Math.floor(nFft / 2) + 1;
-      return Array(nMels)
-        .fill(0)
-        .map(() => new Float32Array(nBins).fill(0.1));
+      // Return flattened array: [filter0[0..nBins], filter1[0..nBins], ...]
+      const result = new Float32Array(nMels * nBins);
+      result.fill(0.1);
+      return result;
     },
   }),
 }));

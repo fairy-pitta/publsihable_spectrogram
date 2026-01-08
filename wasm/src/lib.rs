@@ -67,8 +67,15 @@ pub fn compute_mel_filter_bank(
     sample_rate: usize,
     fmin: f32,
     fmax: f32,
-) -> Vec<Vec<f32>> {
-    utils::generate_mel_filter_bank(n_mels, n_fft, sample_rate, fmin, fmax)
+) -> Vec<f32> {
+    let filter_bank = utils::generate_mel_filter_bank(n_mels, n_fft, sample_rate, fmin, fmax);
+    let n_bins = n_fft / 2 + 1;
+    // Flatten the 2D array into a 1D array: [filter0[0..n_bins], filter1[0..n_bins], ...]
+    let mut flattened = Vec::with_capacity(n_mels * n_bins);
+    for filter in filter_bank {
+        flattened.extend_from_slice(&filter);
+    }
+    flattened
 }
 
 #[wasm_bindgen]

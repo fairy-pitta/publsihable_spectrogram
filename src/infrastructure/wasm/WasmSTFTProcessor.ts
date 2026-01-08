@@ -95,7 +95,7 @@ export class WasmSTFTProcessor implements ISTFTProcessor {
     }
 
     const sampleRate = params.nFft; // Approximate from n_fft
-    const melFilterBank = this.wasmModule.compute_mel_filter_bank(
+    const melFilterBankFlat = this.wasmModule.compute_mel_filter_bank(
       params.nMelBands,
       params.nFft,
       sampleRate * 2, // Approximate sample rate
@@ -103,14 +103,16 @@ export class WasmSTFTProcessor implements ISTFTProcessor {
       sampleRate
     );
 
+    const nBins = Math.floor(params.nFft / 2) + 1;
     const melData = new Float32Array(params.nMelBands * nTimeFrames);
 
     for (let t = 0; t < nTimeFrames; t++) {
       for (let m = 0; m < params.nMelBands; m++) {
         let sum = 0;
-        const filter = melFilterBank[m];
-        for (let f = 0; f < nFreqBins && f < filter.length; f++) {
-          sum += data[t * nFreqBins + f] * filter[f];
+        // Access flattened filter bank: [filter0[0..nBins], filter1[0..nBins], ...]
+        const filterStart = m * nBins;
+        for (let f = 0; f < nFreqBins && f < nBins; f++) {
+          sum += data[t * nFreqBins + f] * melFilterBankFlat[filterStart + f];
         }
         melData[t * params.nMelBands + m] = sum;
       }

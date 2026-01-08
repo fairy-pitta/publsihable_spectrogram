@@ -56,7 +56,7 @@ impl STFTProcessor {
         }
     }
 
-    pub fn process(&self, audio_data: &[f32], sample_rate: usize) -> Vec<f32> {
+    pub fn process(&self, audio_data: &[f32], _sample_rate: usize) -> Vec<f32> {
         if audio_data.is_empty() {
             return Vec::new();
         }
@@ -78,9 +78,7 @@ impl STFTProcessor {
 
             let mut spectrum = frame;
             let mut scratch = vec![Complex::default(); self.fft.get_inplace_scratch_len()];
-            unsafe {
-                self.fft.process_with_scratch(&mut spectrum, &mut scratch);
-            }
+            self.fft.process_with_scratch(&mut spectrum, &mut scratch);
 
             for bin in 0..n_bins {
                 let magnitude = spectrum[bin].norm();
