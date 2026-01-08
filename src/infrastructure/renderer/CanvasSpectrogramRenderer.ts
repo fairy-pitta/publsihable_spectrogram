@@ -19,25 +19,44 @@ export class CanvasSpectrogramRenderer implements IRenderer {
     ctx.imageSmoothingEnabled = true;
     ctx.imageSmoothingQuality = 'high';
     this.context = ctx;
-    
-    // Setup high DPI support (defer until canvas is in DOM)
     this.dpr = window.devicePixelRatio || 1;
-    // Don't setup immediately - let SpectrogramView handle initial sizing
   }
 
   render(spectrogram: Spectrogram, options: RenderOptions): void {
-    const ctx = this.context;
-    
-    // Setup high DPI canvas if not already done
-    this.setupHighDPICanvas();
-    
-    // Use CSS dimensions (canvas is already scaled by dpr)
-    const rect = this.canvas.getBoundingClientRect();
-    const width = rect.width || this.canvas.width / this.dpr;
-    const height = rect.height || this.canvas.height / this.dpr;
+    try {
+      const ctx = this.context;
+      
+      // Get canvas display size
+      const rect = this.canvas.getBoundingClientRect();
+      const displayWidth = rect.width || this.canvas.offsetWidth || 800;
+      const displayHeight = rect.height || this.canvas.offsetHeight || 600;
+      
+      // Setup high DPI canvas
+      const physicalWidth = Math.floor(displayWidth * this.dpr);
+      const physicalHeight = Math.floor(displayHeight * this.dpr);
+      
+      if (this.canvas.width !== physicalWidth || this.canvas.height !== physicalHeight) {
+        // Reset transform to avoid accumulation
+        ctx.setTransform(1, 0, 0, 1, 0, 0);
+        
+        // Set actual canvas size in memory (physical pixels)
+        this.canvas.width = physicalWidth;
+        this.canvas.height = physicalHeight;
+        
+        // Scale context to match device pixel ratio
+        ctx.scale(this.dpr, this.dpr);
+        
+        // Set display size (CSS pixels)
+        this.canvas.style.width = `${displayWidth}px`;
+        this.canvas.style.height = `${displayHeight}px`;
+      }
+      
+      // Use display dimensions for rendering calculations
+      const width = displayWidth;
+      const height = displayHeight;
 
-    // Clear canvas
-    ctx.clearRect(0, 0, width, height);
+      // Clear canvas
+      ctx.clearRect(0, 0, width, height);
 
     // Calculate rendering area (leave space for axes and colorbar)
     const marginLeft = options.showAxes ? 60 : 0;
@@ -45,8 +64,8 @@ export class CanvasSpectrogramRenderer implements IRenderer {
     const marginRight = options.showColorbar ? 80 : 0;
     const marginTop = 20;
 
-    const plotWidth = width - marginLeft - marginRight;
-    const plotHeight = height - marginTop - marginBottom;
+    const plotWidth = Math.max(1, width - marginLeft - marginRight);
+    const plotHeight = Math.max(1, height - marginTop - marginBottom);
     const plotX = marginLeft;
     const plotY = marginTop;
 
@@ -114,38 +133,12 @@ export class CanvasSpectrogramRenderer implements IRenderer {
 
     // Draw annotations
     this.drawAnnotations(ctx);
+    } catch (error) {
+      console.error('Error rendering spectrogram:', error);
+      throw error;
+    }
   }
 
-  private setupHighDPICanvas(): void {
-    const rect = this.canvas.getBoundingClientRect();
-    if (rect.width === 0 || rect.height === 0) {
-      // Canvas not yet in DOM or has no size
-      return;
-    }
-    
-    // Only setup once or if size changed
-    const expectedWidth = rect.width * this.dpr;
-    const expectedHeight = rect.height * this.dpr;
-    
-    if (this.canvas.width !== expectedWidth || this.canvas.height !== expectedHeight) {
-      // Save current transform
-      ctx.save();
-      
-      // Reset transform
-      ctx.setTransform(1, 0, 0, 1, 0, 0);
-      
-      // Set actual canvas size in memory (physical pixels)
-      this.canvas.width = expectedWidth;
-      this.canvas.height = expectedHeight;
-      
-      // Scale context to match device pixel ratio
-      ctx.scale(this.dpr, this.dpr);
-      
-      // Set display size (CSS pixels)
-      this.canvas.style.width = `${rect.width}px`;
-      this.canvas.style.height = `${rect.height}px`;
-    }
-  }
 
   private bilinearInterpolation(
     spectrogram: Spectrogram,
