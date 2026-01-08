@@ -1,4 +1,4 @@
-import React, { useState, useContext, createContext } from 'react';
+import React, { useState, useContext, createContext, useEffect } from 'react';
 import { Annotation, AnnotationType } from '@domain/entities/Annotation';
 import { AnnotationService } from '@application/services/AnnotationService';
 import './AnnotationEditor.css';
@@ -13,8 +13,15 @@ export function AnnotationEditorProvider({ children, annotationService }: { chil
   );
 }
 
-export function AnnotationEditor() {
-  const [annotationService] = useState(() => new AnnotationService());
+interface AnnotationEditorProps {
+  annotationService?: AnnotationService;
+  addAnnotation?: (annotation: Annotation) => void;
+  spectrogramCenter?: { x: number; y: number };
+}
+
+export function AnnotationEditor({ annotationService: externalAnnotationService, addAnnotation: externalAddAnnotation, spectrogramCenter }: AnnotationEditorProps) {
+  const [internalAnnotationService] = useState(() => new AnnotationService());
+  const annotationService = externalAnnotationService || internalAnnotationService;
   const [, forceUpdate] = useState({});
 
   const [selectedType, setSelectedType] = useState<AnnotationType>(AnnotationType.Text);
@@ -26,12 +33,25 @@ export function AnnotationEditor() {
   const [width, setWidth] = useState(100);
   const [height, setHeight] = useState(50);
 
+  // Update position when spectrogram center changes
+  useEffect(() => {
+    if (spectrogramCenter) {
+      setX(spectrogramCenter.x);
+      setY(spectrogramCenter.y);
+      // For arrow, set x2 and y2 relative to center
+      if (selectedType === AnnotationType.Arrow) {
+        setX2(spectrogramCenter.x + 50);
+        setY2(spectrogramCenter.y + 50);
+      }
+    }
+  }, [spectrogramCenter, selectedType]);
+
   const handleAdd = () => {
     let properties: any = {};
 
     switch (selectedType) {
       case AnnotationType.Text:
-        properties = { text };
+        properties = { text: text || 'Annotation' };
         break;
       case AnnotationType.Arrow:
         properties = { x2, y2 };
@@ -41,8 +61,17 @@ export function AnnotationEditor() {
         break;
     }
 
-    const annotation = new Annotation(selectedType, { x, y }, properties);
-    annotationService.addAnnotation(annotation);
+    // Use spectrogram center if available, otherwise use current x, y
+    const position = spectrogramCenter || { x, y };
+    const annotation = new Annotation(selectedType, position, properties);
+    
+    // Use external addAnnotation if available (from useSpectrogram), otherwise use annotationService directly
+    if (externalAddAnnotation) {
+      externalAddAnnotation(annotation);
+    } else {
+      annotationService.addAnnotation(annotation);
+    }
+    
     // Trigger re-render
     forceUpdate({});
   };
@@ -63,13 +92,18 @@ export function AnnotationEditor() {
 
         <label>
           X:
-          <input type="number" value={x} onChange={(e) => setX(parseInt(e.target.value))} />
+          <input type="number" value={spectrogramCenter?.x ?? x} onChange={(e) => setX(parseInt(e.target.value))} disabled={!!spectrogramCenter} />
         </label>
 
         <label>
           Y:
-          <input type="number" value={y} onChange={(e) => setY(parseInt(e.target.value))} />
+          <input type="number" value={spectrogramCenter?.y ?? y} onChange={(e) => setY(parseInt(e.target.value))} disabled={!!spectrogramCenter} />
         </label>
+        {spectrogramCenter && (
+          <p style={{ fontSize: '12px', color: '#666', margin: '5px 0' }}>
+            Position will be set to center. You can drag the annotation after adding it.
+          </p>
+        )}
 
         {selectedType === AnnotationType.Text && (
           <label>
@@ -111,8 +145,11 @@ export function AnnotationEditor() {
         <h3>Current Annotations</h3>
         {annotationService.getAnnotations().map((annotation) => (
           <div key={annotation.id} className="annotation-item">
-            <span>{annotation.type}</span>
-            <button onClick={() => { annotationService.removeAnnotation(annotation.id); forceUpdate({}); }}>Remove</button>
+            <span>{annotation.type} ({Math.round(annotation.position.x)}, {Math.round(annotation.position.y)})</span>
+            <button onClick={() => { 
+              annotationService.removeAnnotation(annotation.id); 
+              forceUpdate({}); 
+            }}>Remove</button>
           </div>
         ))}
       </div>

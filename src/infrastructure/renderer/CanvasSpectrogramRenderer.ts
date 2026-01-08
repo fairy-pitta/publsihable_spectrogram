@@ -77,9 +77,22 @@ export class CanvasSpectrogramRenderer implements IRenderer {
     const imageData = ctx.createImageData(plotWidth, plotHeight);
     const { data } = imageData;
 
-    const minDb = options.dbMin;
-    const maxDb = options.dbMax;
+    // Calculate actual data range from spectrogram
+    let actualMinDb = Infinity;
+    let actualMaxDb = -Infinity;
+    for (let i = 0; i < spectrogram.data.length; i++) {
+      const value = spectrogram.data[i];
+      if (Number.isFinite(value)) {
+        actualMinDb = Math.min(actualMinDb, value);
+        actualMaxDb = Math.max(actualMaxDb, value);
+      }
+    }
+    
+    // Use actual data range if it's valid, otherwise fall back to options
+    const minDb = Number.isFinite(actualMinDb) ? actualMinDb : options.dbMin;
+    const maxDb = Number.isFinite(actualMaxDb) ? actualMaxDb : options.dbMax;
     const dbRange = maxDb - minDb;
+    
     const smoothing = options.smoothing ?? 0.0;
     const useOversampling = options.oversampling ?? false;
 
@@ -113,7 +126,20 @@ export class CanvasSpectrogramRenderer implements IRenderer {
 
         // Use bilinear interpolation for smoother rendering
         const dbValue = this.bilinearInterpolation(finalSpectrogram, freqBin, timeFrame);
-        const normalized = (dbValue - minDb) / dbRange;
+        
+        // Normalize dbValue to [0, 1] range with proper handling of edge cases
+        let normalized: number;
+        if (!Number.isFinite(dbValue)) {
+          // Handle NaN or Infinity values
+          normalized = 0;
+        } else if (dbRange <= 0 || Math.abs(dbRange) < 1e-10) {
+          // Handle case where dbRange is zero or very small
+          normalized = 0.5;
+        } else {
+          normalized = (dbValue - minDb) / dbRange;
+          // Clamp normalized value to [0, 1] range
+          normalized = Math.max(0, Math.min(1, normalized));
+        }
         
         const [r, g, b] = Colormap.valueToColor(
           normalized,
@@ -179,10 +205,19 @@ export class CanvasSpectrogramRenderer implements IRenderer {
     const v10 = spectrogram.getValue(f1, t0);
     const v11 = spectrogram.getValue(f1, t1);
 
+    // Check for invalid values and replace with 0
+    const safeV00 = Number.isFinite(v00) ? v00 : 0;
+    const safeV01 = Number.isFinite(v01) ? v01 : 0;
+    const safeV10 = Number.isFinite(v10) ? v10 : 0;
+    const safeV11 = Number.isFinite(v11) ? v11 : 0;
+
     // Bilinear interpolation: first interpolate along time axis, then along frequency axis
-    const v0 = v00 * (1 - dt) + v01 * dt;
-    const v1 = v10 * (1 - dt) + v11 * dt;
-    return v0 * (1 - df) + v1 * df;
+    const v0 = safeV00 * (1 - dt) + safeV01 * dt;
+    const v1 = safeV10 * (1 - dt) + safeV11 * dt;
+    const result = v0 * (1 - df) + v1 * df;
+    
+    // Ensure result is finite
+    return Number.isFinite(result) ? result : 0;
   }
 
   private applySmoothing(spectrogram: Spectrogram, smoothing: number): Spectrogram {

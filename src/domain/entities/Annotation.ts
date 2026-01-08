@@ -14,8 +14,13 @@ export class Annotation {
   constructor(
     public type: AnnotationType,
     public position: { x: number; y: number },
-    public properties: AnnotationProperties
+    public properties: AnnotationProperties,
+    id?: string
   ) {
-    this.id = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    this.id = id || `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+  }
+
+  withPosition(newPosition: { x: number; y: number }): Annotation {
+    return new Annotation(this.type, newPosition, this.properties, this.id);
   }
 }

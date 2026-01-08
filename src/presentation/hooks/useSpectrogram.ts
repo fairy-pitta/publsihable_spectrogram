@@ -12,6 +12,7 @@ export function useSpectrogram(canvasRef: React.RefObject<HTMLCanvasElement>, sv
   const [renderService, setRenderService] = useState<SpectrogramRenderService | null>(null);
   const [annotationService, setAnnotationService] = useState<AnnotationService>(new AnnotationService());
   const [exportService, setExportService] = useState<ExportService | null>(null);
+  const [annotationLayer, setAnnotationLayer] = useState<SVGAnnotationLayer | null>(null);
   const [renderOptions, setRenderOptions] = useState<RenderOptions>({
     colormap: 'viridis',
     brightness: 1.0,
@@ -26,18 +27,19 @@ export function useSpectrogram(canvasRef: React.RefObject<HTMLCanvasElement>, sv
   useEffect(() => {
     if (canvasRef.current && svgRef.current) {
       const renderer = new CanvasSpectrogramRenderer(canvasRef.current);
-      const annotationLayer = new SVGAnnotationLayer(svgRef.current);
+      const annotationLayerInstance = new SVGAnnotationLayer(svgRef.current);
       const renderServiceInstance = new SpectrogramRenderService(renderer);
-      const exportServiceInstance = new ExportService(renderer, annotationLayer);
+      const exportServiceInstance = new ExportService(renderer, annotationLayerInstance);
 
       setRenderService(renderServiceInstance);
       setExportService(exportServiceInstance);
+      setAnnotationLayer(annotationLayerInstance);
 
       // Sync annotations
       const updateAnnotations = () => {
         annotationService.getAnnotations().forEach((annotation) => {
           renderServiceInstance.addAnnotation(annotation);
-          annotationLayer.addAnnotation(annotation);
+          annotationLayerInstance.addAnnotation(annotation);
         });
       };
 
@@ -55,17 +57,26 @@ export function useSpectrogram(canvasRef: React.RefObject<HTMLCanvasElement>, sv
   const addAnnotation = useCallback((annotation: Annotation) => {
     annotationService.addAnnotation(annotation);
     renderService?.addAnnotation(annotation);
-  }, [annotationService, renderService]);
+    annotationLayer?.addAnnotation(annotation);
+  }, [annotationService, renderService, annotationLayer]);
+
+  const updateAnnotation = useCallback((annotation: Annotation) => {
+    annotationService.updateAnnotation(annotation);
+    renderService?.addAnnotation(annotation);
+    annotationLayer?.updateAnnotation(annotation);
+  }, [annotationService, renderService, annotationLayer]);
 
   const removeAnnotation = useCallback((annotationId: string) => {
     annotationService.removeAnnotation(annotationId);
     renderService?.removeAnnotation(annotationId);
-  }, [annotationService, renderService]);
+    annotationLayer?.removeAnnotation(annotationId);
+  }, [annotationService, renderService, annotationLayer]);
 
   const clearAnnotations = useCallback(() => {
     annotationService.clearAnnotations();
     renderService?.clearAnnotations();
-  }, [annotationService, renderService]);
+    annotationLayer?.clearAnnotations();
+  }, [annotationService, renderService, annotationLayer]);
 
   const updateRenderOptions = useCallback((options: Partial<RenderOptions>) => {
     setRenderOptions((prev) => ({ ...prev, ...options }));
@@ -94,6 +105,7 @@ export function useSpectrogram(canvasRef: React.RefObject<HTMLCanvasElement>, sv
   return {
     render,
     addAnnotation,
+    updateAnnotation,
     removeAnnotation,
     clearAnnotations,
     updateRenderOptions,
@@ -103,6 +115,7 @@ export function useSpectrogram(canvasRef: React.RefObject<HTMLCanvasElement>, sv
     downloadPNG,
     downloadSVG,
     annotations: annotationService.getAnnotations(),
+    annotationService,
     isReady: renderService !== null && exportService !== null,
   };
 }

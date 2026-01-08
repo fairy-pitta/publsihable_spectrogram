@@ -68,6 +68,8 @@ export class SVGAnnotationLayer {
     text.setAttribute('font-size', (annotation.properties.fontSize as string) || '14px');
     text.setAttribute('fill', (annotation.properties.color as string) || '#000000');
     text.textContent = (annotation.properties.text as string) || '';
+    text.style.cursor = 'move';
+    text.style.userSelect = 'none';
 
     if (annotation.id) {
       text.setAttribute('data-annotation-id', annotation.id);
@@ -79,6 +81,8 @@ export class SVGAnnotationLayer {
   private createArrowElement(annotation: Annotation): SVGGElement {
     const group = document.createElementNS('http://www.w3.org/2000/svg', 'g');
     group.setAttribute('data-annotation-id', annotation.id);
+    group.style.cursor = 'move';
+    group.style.userSelect = 'none';
 
     const x1 = annotation.position.x;
     const y1 = annotation.position.y;
@@ -130,6 +134,8 @@ export class SVGAnnotationLayer {
     rect.setAttribute('height', ((annotation.properties.height as number) || 50).toString());
     rect.setAttribute('stroke', (annotation.properties.color as string) || '#000000');
     rect.setAttribute('stroke-width', ((annotation.properties.lineWidth as number) || 2).toString());
+    rect.style.cursor = 'move';
+    rect.style.userSelect = 'none';
 
     const fillColor = annotation.properties.fillColor as string;
     if (fillColor && fillColor !== 'transparent') {

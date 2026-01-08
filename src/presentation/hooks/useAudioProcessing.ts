@@ -22,6 +22,8 @@ export function useAudioProcessing() {
     try {
       setError(null);
       setIsProcessing(true);
+      // Clear old spectrogram when loading new audio
+      setSpectrogram(null);
       const buffer = await input.loadAudio();
       setAudioBuffer(buffer);
       return buffer;

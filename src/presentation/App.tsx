@@ -7,6 +7,8 @@ import { useAudioProcessing } from './hooks/useAudioProcessing';
 import { FileAudioInput } from '@infrastructure/audio/FileAudioInput';
 import { STFTParameters } from '@domain/interfaces/ISTFTProcessor';
 import { RenderOptions } from '@domain/interfaces/IRenderer';
+import { AnnotationService } from '@application/services/AnnotationService';
+import { Annotation } from '@domain/entities/Annotation';
 import './App.css';
 
 function App() {
@@ -37,6 +39,9 @@ function App() {
   });
 
   const [showExportDialog, setShowExportDialog] = useState(false);
+  const [annotationService, setAnnotationService] = useState<AnnotationService | null>(null);
+  const [addAnnotation, setAddAnnotation] = useState<((annotation: Annotation) => void) | null>(null);
+  const [spectrogramCenter, setSpectrogramCenter] = useState<{ x: number; y: number } | null>(null);
 
   const handleFileUpload = useCallback(
     async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -86,16 +91,17 @@ function App() {
     }
   }, [audioBuffer, spectrogram, isReady, handleRecompute]);
 
+
   return (
     <div className="app">
       <header className="app-header">
         <h1>Spectrogram Generator</h1>
         <div className="header-actions">
           <label className="upload-button">
-            Upload WAV File
+            Upload Audio File
             <input
               type="file"
-              accept=".wav,audio/wav"
+              accept=".wav,.mp3,.ogg,.m4a,audio/wav,audio/mpeg,audio/ogg,audio/mp4"
               onChange={handleFileUpload}
               style={{ display: 'none' }}
             />
@@ -121,6 +127,9 @@ function App() {
             <SpectrogramView
               spectrogram={spectrogram}
               renderOptions={renderOptions}
+              onAnnotationServiceReady={setAnnotationService}
+              onAddAnnotationReady={setAddAnnotation}
+              onCenterReady={setSpectrogramCenter}
             />
           ) : (
             <div className="empty-state">
@@ -129,7 +138,11 @@ function App() {
           )}
         </div>
 
-        <AnnotationEditor />
+        <AnnotationEditor 
+          annotationService={annotationService}
+          addAnnotation={addAnnotation}
+          spectrogramCenter={spectrogramCenter}
+        />
       </div>
 
       <ExportDialog

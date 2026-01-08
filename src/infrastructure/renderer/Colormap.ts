@@ -67,7 +67,20 @@ export class Colormap {
     contrast: number = 1.0,
     gamma: number = 1.0
   ): [number, number, number] {
-    const normalized = (value - min) / (max - min || 1);
+    // Handle NaN, Infinity, and invalid values
+    if (!Number.isFinite(value) || !Number.isFinite(min) || !Number.isFinite(max)) {
+      return [0, 0, 0];
+    }
+    
+    // Handle case where max - min is zero or very small
+    const range = max - min;
+    let normalized: number;
+    if (Math.abs(range) < 1e-10) {
+      normalized = 0.5;
+    } else {
+      normalized = (value - min) / range;
+    }
+    
     const clamped = Math.max(0, Math.min(1, normalized));
     const colormapFunc = this.getColormap(colormap);
     let rgb = colormapFunc(clamped);
