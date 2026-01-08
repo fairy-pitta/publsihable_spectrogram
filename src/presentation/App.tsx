@@ -43,6 +43,8 @@ function App() {
   const [addAnnotation, setAddAnnotation] = useState<((annotation: Annotation) => void) | null>(null);
   const [updateAnnotation, setUpdateAnnotation] = useState<((annotation: Annotation) => void) | null>(null);
   const [spectrogramCenter, setSpectrogramCenter] = useState<{ x: number; y: number } | null>(null);
+  const [controlsPanelCollapsed, setControlsPanelCollapsed] = useState(false);
+  const [annotationEditorCollapsed, setAnnotationEditorCollapsed] = useState(false);
 
   const handleFileUpload = useCallback(
     async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -112,13 +114,24 @@ function App() {
       </header>
 
       <div className="app-content">
-        <ControlsPanel
-          stftParams={stftParams}
-          renderOptions={renderOptions}
-          onSTFTParamsChange={handleSTFTParamsChange}
-          onRenderOptionsChange={handleRenderOptionsChange}
-          onRecompute={handleRecompute}
-        />
+        <div className={`sidebar-left ${controlsPanelCollapsed ? 'collapsed' : ''}`}>
+          <button 
+            className="sidebar-toggle"
+            onClick={() => setControlsPanelCollapsed(!controlsPanelCollapsed)}
+            title={controlsPanelCollapsed ? 'Expand Controls' : 'Collapse Controls'}
+          >
+            <i className={`fas ${controlsPanelCollapsed ? 'fa-chevron-right' : 'fa-chevron-left'}`}></i>
+          </button>
+          {!controlsPanelCollapsed && (
+            <ControlsPanel
+              stftParams={stftParams}
+              renderOptions={renderOptions}
+              onSTFTParamsChange={handleSTFTParamsChange}
+              onRenderOptionsChange={handleRenderOptionsChange}
+              onRecompute={handleRecompute}
+            />
+          )}
+        </div>
 
         <div className="main-view">
           {error && <div className="error-message">Error: {error}</div>}
@@ -135,17 +148,28 @@ function App() {
             />
           ) : (
             <div className="empty-state">
-              <p>Upload a WAV file to get started</p>
+              <p>Upload an audio file to get started</p>
             </div>
           )}
         </div>
 
-        <AnnotationEditor 
-          annotationService={annotationService}
-          addAnnotation={addAnnotation}
-          updateAnnotation={updateAnnotation}
-          spectrogramCenter={spectrogramCenter}
-        />
+        <div className={`sidebar-right ${annotationEditorCollapsed ? 'collapsed' : ''}`}>
+          <button 
+            className="sidebar-toggle"
+            onClick={() => setAnnotationEditorCollapsed(!annotationEditorCollapsed)}
+            title={annotationEditorCollapsed ? 'Expand Annotations' : 'Collapse Annotations'}
+          >
+            <i className={`fas ${annotationEditorCollapsed ? 'fa-chevron-left' : 'fa-chevron-right'}`}></i>
+          </button>
+          {!annotationEditorCollapsed && (
+            <AnnotationEditor 
+              annotationService={annotationService}
+              addAnnotation={addAnnotation}
+              updateAnnotation={updateAnnotation}
+              spectrogramCenter={spectrogramCenter}
+            />
+          )}
+        </div>
       </div>
 
       <ExportDialog

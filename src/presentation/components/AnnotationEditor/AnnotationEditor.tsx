@@ -214,19 +214,15 @@ export function AnnotationEditor({ annotationService: externalAnnotationService,
 
         <label>
           Color:
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '5px', marginTop: '5px' }}>
+          <div className="color-picker">
             {colorOptions.map((option) => (
               <button
                 key={option.value}
                 type="button"
                 onClick={() => setColor(option.value)}
+                className={`color-option ${color === option.value ? 'selected' : ''}`}
                 style={{
-                  width: '30px',
-                  height: '30px',
                   backgroundColor: option.value,
-                  border: color === option.value ? '3px solid #333' : '1px solid #ccc',
-                  cursor: 'pointer',
-                  borderRadius: '4px',
                 }}
                 title={option.name}
               />

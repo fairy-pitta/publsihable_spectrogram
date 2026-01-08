@@ -1,80 +1,189 @@
 .annotation-editor {
-  padding: 20px;
-  background: #f5f5f5;
-  border-top: 1px solid #ddd;
+  padding: var(--spacing-xl);
+  padding-top: 60px;
+  background: var(--pastel-surface);
+  overflow-y: auto;
+  height: 100%;
+  flex: 1;
 }
 
 .annotation-editor h2 {
   margin-top: 0;
-  margin-bottom: 15px;
+  margin-bottom: var(--spacing-lg);
   font-size: 18px;
   font-weight: 600;
+  color: var(--pastel-text);
+  letter-spacing: -0.5px;
+  padding-bottom: var(--spacing-sm);
+  border-bottom: 2px solid var(--pastel-border);
+  position: relative;
+}
+
+.annotation-editor h2::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  width: 40px;
+  height: 2px;
+  background: var(--pastel-primary);
+  border-radius: 2px;
 }
 
 .annotation-form {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  margin-bottom: 20px;
+  gap: var(--spacing-md);
+  margin-bottom: var(--spacing-xl);
+  padding: var(--spacing-lg);
+  background: var(--pastel-background);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--pastel-border);
+  box-shadow: 0 2px 8px var(--pastel-shadow-soft);
 }
 
 .annotation-form label {
   display: flex;
   flex-direction: column;
-  gap: 5px;
-  font-size: 14px;
+  gap: var(--spacing-sm);
+  font-size: 13px;
+  color: var(--pastel-text);
+  font-weight: 500;
 }
 
 .annotation-form input,
 .annotation-form select {
-  padding: 8px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
+  padding: 12px 14px;
+  border: 1px solid var(--pastel-border);
+  border-radius: var(--radius-sm);
   font-size: 14px;
+  background: var(--pastel-surface);
+  color: var(--pastel-text);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.annotation-form button {
-  padding: 10px;
-  background: #28a745;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  font-size: 14px;
-  font-weight: 600;
+.annotation-form input:focus,
+.annotation-form select:focus {
+  outline: none;
+  border-color: var(--pastel-primary);
+  box-shadow: 0 0 0 3px rgba(230, 213, 196, 0.2);
+}
+
+.annotation-form input[type="color"] {
+  width: 100%;
+  height: 40px;
+  border: 1px solid var(--pastel-border);
+  border-radius: 6px;
   cursor: pointer;
 }
 
+.annotation-form button {
+  padding: 12px 20px;
+  background: var(--pastel-secondary);
+  color: var(--pastel-text);
+  border: none;
+  border-radius: var(--radius-md);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 2px 8px var(--pastel-shadow-soft);
+}
+
 .annotation-form button:hover {
-  background: #218838;
+  background: var(--pastel-secondary-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px var(--pastel-shadow);
+}
+
+.annotation-form button:active {
+  transform: translateY(0);
+}
+
+.annotation-form button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
 }
 
 .annotations-list h3 {
-  font-size: 16px;
-  margin-bottom: 10px;
+  font-size: 14px;
+  margin-bottom: 12px;
+  color: var(--pastel-text);
+  font-weight: 500;
 }
 
 .annotation-item {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 8px;
-  background: white;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  margin-bottom: 5px;
+  padding: var(--spacing-md);
+  background: var(--pastel-background);
+  border: 1px solid var(--pastel-border);
+  border-radius: var(--radius-sm);
+  margin-bottom: var(--spacing-sm);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 1px 3px var(--pastel-shadow-soft);
+}
+
+.annotation-item:hover {
+  background: var(--pastel-background-hover);
+  border-color: var(--pastel-primary);
+  box-shadow: 0 4px 12px var(--pastel-shadow);
+  transform: translateX(4px);
+}
+
+.annotation-item span {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--pastel-text);
 }
 
 .annotation-item button {
-  padding: 5px 10px;
-  background: #dc3545;
-  color: white;
-  border: none;
-  border-radius: 4px;
+  padding: 6px 12px;
+  background: var(--pastel-secondary);
+  color: var(--pastel-text);
+  border: 1px solid var(--pastel-border);
+  border-radius: 6px;
   font-size: 12px;
   cursor: pointer;
+  transition: all 0.2s ease;
+  margin-left: 4px;
 }
 
 .annotation-item button:hover {
-  background: #c82333;
+  background: var(--pastel-secondary-hover);
+  transform: translateY(-1px);
+}
+
+.color-picker {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.color-option {
+  width: 32px;
+  height: 32px;
+  border: 2px solid var(--pastel-border);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 4px var(--pastel-shadow);
+  position: relative;
+}
+
+.color-option:hover {
+  transform: scale(1.1);
+  box-shadow: 0 4px 8px var(--pastel-shadow);
+}
+
+.color-option.selected {
+  border: 3px solid var(--pastel-text);
+  box-shadow: 0 0 0 2px var(--pastel-primary), 0 4px 8px var(--pastel-shadow);
+  transform: scale(1.05);
 }
 
