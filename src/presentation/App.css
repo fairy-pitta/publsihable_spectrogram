@@ -332,6 +332,7 @@
 
   .sidebar-container-left,
   .sidebar-container-right {
+    flex-direction: column;
     width: 100%;
     height: auto;
     max-height: none;
@@ -362,11 +363,11 @@
   }
 
   .sidebar-toggle-left {
-    margin-right: var(--spacing-sm);
+    margin-right: 0;
   }
 
   .sidebar-toggle-right {
-    margin-left: var(--spacing-sm);
+    margin-left: 0;
     order: 0;
   }
 }
