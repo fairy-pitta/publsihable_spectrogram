@@ -1,0 +1,66 @@
+.controls-panel {
+  padding: 20px;
+  background: #f5f5f5;
+  border-right: 1px solid #ddd;
+  overflow-y: auto;
+  min-width: 300px;
+}
+
+.controls-panel h2 {
+  margin-top: 0;
+  margin-bottom: 15px;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.control-group {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  margin-bottom: 20px;
+}
+
+.control-group label {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  font-size: 14px;
+}
+
+.control-group input[type="number"],
+.control-group select {
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+.control-group input[type="range"] {
+  width: 100%;
+}
+
+.control-group input[type="checkbox"] {
+  width: auto;
+  margin-right: 8px;
+}
+
+.recompute-button {
+  width: 100%;
+  padding: 12px;
+  background: #007bff;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-bottom: 20px;
+}
+
+.recompute-button:hover {
+  background: #0056b3;
+}
+
+.recompute-button:active {
+  background: #004085;
+}

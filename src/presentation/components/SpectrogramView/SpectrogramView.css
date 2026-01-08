@@ -1,0 +1,38 @@
+.spectrogram-view {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.spectrogram-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  flex: 1;
+  overflow: auto;
+}
+
+.spectrogram-canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  image-rendering: pixelated;
+  image-rendering: -moz-crisp-edges;
+  image-rendering: crisp-edges;
+}
+
+.spectrogram-annotations {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.spectrogram-annotations text,
+.spectrogram-annotations line,
+.spectrogram-annotations rect {
+  pointer-events: all;
+}
