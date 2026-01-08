@@ -79,16 +79,26 @@ export class CanvasSpectrogramRenderer implements IRenderer {
     const smoothing = options.smoothing ?? 0.0;
     const useOversampling = options.oversampling ?? false;
 
-    // Apply smoothing if requested
+    // Apply smoothing if requested (with error handling)
     let smoothedSpectrogram = spectrogram;
-    if (smoothing > 0.0) {
-      smoothedSpectrogram = this.applySmoothing(spectrogram, smoothing);
+    if (smoothing > 0.0 && smoothing <= 1.0) {
+      try {
+        smoothedSpectrogram = this.applySmoothing(spectrogram, smoothing);
+      } catch (error) {
+        console.warn('Smoothing failed, using original spectrogram:', error);
+        smoothedSpectrogram = spectrogram;
+      }
     }
 
-    // Apply oversampling if requested
+    // Apply oversampling if requested (with error handling)
     let finalSpectrogram = smoothedSpectrogram;
     if (useOversampling) {
-      finalSpectrogram = this.applyOversampling(smoothedSpectrogram);
+      try {
+        finalSpectrogram = this.applyOversampling(smoothedSpectrogram);
+      } catch (error) {
+        console.warn('Oversampling failed, using original spectrogram:', error);
+        finalSpectrogram = smoothedSpectrogram;
+      }
     }
 
     for (let y = 0; y < plotHeight; y++) {
