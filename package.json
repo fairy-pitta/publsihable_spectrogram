@@ -9,7 +9,7 @@
     "preview": "vite preview",
     "test": "vitest",
     "test:ui": "vitest --ui",
-    "build:wasm": "command -v wasm-pack >/dev/null 2>&1 || { echo 'Error: wasm-pack is not installed. Please install it with: cargo install wasm-pack'; exit 1; } && cd wasm && wasm-pack build --target web --out-dir ../src/infrastructure/wasm/pkg"
+    "build:wasm": "command -v wasm-pack >/dev/null 2>&1 || { echo 'Error: wasm-pack is not installed or not in PATH.'; echo 'Please install it with: cargo install wasm-pack'; echo 'If installed, ensure ~/.cargo/bin is in your PATH.'; exit 1; } && cd wasm && wasm-pack build --target web --out-dir ../src/infrastructure/wasm/pkg"
   },
   "dependencies": {
     "react": "^18.3.1",
