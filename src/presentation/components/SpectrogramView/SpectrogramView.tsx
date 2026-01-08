@@ -1,9 +1,8 @@
-import React, { useRef, useEffect, useState } from 'react';
+import { useRef, useEffect } from 'react';
 import { Spectrogram } from '@domain/entities/Spectrogram';
 import { useSpectrogram } from '../../hooks/useSpectrogram';
 import { RenderOptions } from '@domain/interfaces/IRenderer';
 import { AnnotationService } from '@application/services/AnnotationService';
-import { ExportService } from '@application/services/ExportService';
 import { Annotation, AnnotationType } from '@domain/entities/Annotation';
 import './SpectrogramView.css';
 
@@ -15,7 +14,7 @@ interface SpectrogramViewProps {
   onAddAnnotationReady?: (addAnnotation: (annotation: Annotation) => void) => void;
   onUpdateAnnotationReady?: (updateAnnotation: (annotation: Annotation) => void) => void;
   onCenterReady?: (center: { x: number; y: number }) => void;
-  onExportServiceReady?: (exportService: ExportService) => void;
+  onExportServiceReady?: (exportService: import('@application/services/ExportService').ExportService) => void;
 }
 
 export function SpectrogramView({ spectrogram, renderOptions, onRender, onAnnotationServiceReady, onAddAnnotationReady, onUpdateAnnotationReady, onCenterReady, onExportServiceReady }: SpectrogramViewProps) {
@@ -97,11 +96,11 @@ export function SpectrogramView({ spectrogram, renderOptions, onRender, onAnnota
       const target = e.target as SVGElement;
       // Try to find annotation ID by traversing up the DOM tree
       let annotationId: string | null = null;
-      let currentElement: SVGElement | null = target;
+      let currentElement: Element | null = target;
       while (currentElement && !annotationId) {
         annotationId = currentElement.getAttribute('data-annotation-id');
         if (!annotationId && currentElement.parentElement) {
-          currentElement = currentElement.parentElement as SVGElement;
+          currentElement = currentElement.parentElement;
         } else {
           break;
         }
@@ -139,7 +138,10 @@ export function SpectrogramView({ spectrogram, renderOptions, onRender, onAnnota
         const newX = e.clientX - svgRect.left - dragStateRef.current.offsetX;
         const newY = e.clientY - svgRect.top - dragStateRef.current.offsetY;
         
-        const annotation = annotationService.getAnnotation(dragStateRef.current.annotationId);
+        const annotationId = dragStateRef.current.annotationId;
+        if (!annotationId) return;
+        
+        const annotation = annotationService.getAnnotation(annotationId);
         if (annotation && updateAnnotation) {
           if (dragStateRef.current.isArrowEnd && annotation.type === AnnotationType.Arrow) {
             // Update arrow end position
