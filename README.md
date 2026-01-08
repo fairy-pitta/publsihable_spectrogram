@@ -114,6 +114,46 @@ npm run test:ui
 npm run build
 ```
 
+The build output will be in the `dist/` directory, ready for static hosting.
+
+## Deployment
+
+This project is a **static site** that runs entirely in the browser, making it compatible with various static hosting services.
+
+### Cloudflare Pages (Recommended)
+
+This project is fully compatible with **Cloudflare Pages**:
+
+1. **Build Settings**:
+   - Build command: `npm run build`
+   - Build output directory: `dist`
+   - Node.js version: 18 or higher
+
+2. **Environment Variables**:
+   - None required (fully client-side)
+
+3. **WASM Support**:
+   - Cloudflare Pages automatically serves WASM files with the correct MIME type
+   - The WASM module (204KB) is well within size limits
+
+4. **Deployment Steps**:
+   ```bash
+   # Connect your repository to Cloudflare Pages
+   # Or deploy manually:
+   npm run build
+   # Upload the dist/ directory to Cloudflare Pages
+   ```
+
+**Note**: This project is **NOT suitable for Cloudflare Workers** (serverless functions). Use **Cloudflare Pages** instead for static site hosting.
+
+### Other Static Hosting Services
+
+This project can also be deployed to:
+- **Vercel**: Connect repository, build command: `npm run build`, output: `dist`
+- **Netlify**: Connect repository, build command: `npm run build`, publish directory: `dist`
+- **GitHub Pages**: Build locally and push `dist/` contents
+- **Any static hosting service**: Upload the `dist/` directory after building
+
 ## Project Structure
 
 ```
