@@ -135,14 +135,37 @@ This project is fully compatible with **Cloudflare Pages**:
 3. **WASM Support**:
    - Cloudflare Pages automatically serves WASM files with the correct MIME type
    - The WASM module (204KB) is well within size limits
+   - The build script will automatically install Rust and wasm-pack if not available
 
 4. **Deployment Steps**:
-   ```bash
-   # Connect your repository to Cloudflare Pages
-   # Or deploy manually:
-   npm run build
-   # Upload the dist/ directory to Cloudflare Pages
-   ```
+   
+   **Option A: Automatic (Recommended)**
+   - Connect your repository to Cloudflare Pages
+   - Build command: `npm run build`
+   - Build output directory: `dist`
+   - The build script will automatically install Rust and wasm-pack if needed
+   
+   **Option B: Manual Build Command (if automatic fails)**
+   - Build command:
+     ```bash
+     curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y && export PATH="$HOME/.cargo/bin:$PATH" && npm install && npm run build
+     ```
+   - Build output directory: `dist`
+   
+   **Option C: Pre-built WASM (Fastest)**
+   - If you want to skip Rust installation in CI/CD, you can commit the built WASM files
+   - Build WASM locally: `npm run build:wasm`
+   - Commit the `src/infrastructure/wasm/pkg/` directory (except `.wasm` files, keep only `.d.ts` and `package.json`)
+   - Modify `build:wasm` script to skip if WASM already exists
+
+5. **CI/CD Build Notes**:
+   - The build process will automatically install Rust and wasm-pack if needed
+   - This may take a few minutes on the first build
+   - Subsequent builds will be faster as Rust toolchain is cached
+   - If you prefer to pre-install Rust, you can add this to your build command:
+     ```bash
+     curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y && export PATH="$HOME/.cargo/bin:$PATH" && npm run build
+     ```
 
 **Note**: This project is **NOT suitable for Cloudflare Workers** (serverless functions). Use **Cloudflare Pages** instead for static site hosting.
 
