@@ -169,6 +169,37 @@ This project is fully compatible with **Cloudflare Pages**:
 
 **Note**: While this project can technically be deployed to **Cloudflare Workers** using Workers Sites (see below), **Cloudflare Pages** is the recommended and simpler option for static site hosting.
 
+### Cloudflare Workers (Alternative)
+
+If you prefer to use **Cloudflare Workers** instead of Pages, you can deploy using Wrangler:
+
+1. **Install Wrangler** (if not already installed):
+   ```bash
+   npm install -g wrangler
+   ```
+
+2. **Build the project**:
+   ```bash
+   npm run build
+   ```
+
+3. **Deploy using Wrangler**:
+   ```bash
+   npx wrangler deploy
+   ```
+
+   Or specify the assets directory explicitly:
+   ```bash
+   npx wrangler deploy --assets=./dist
+   ```
+
+4. **Configuration**:
+   - The `wrangler.jsonc` file is already configured for this project
+   - It points to the `./dist` directory as the assets directory
+   - You can customize the worker name in `wrangler.jsonc` if needed
+
+**Note**: Workers Sites is a legacy feature. For new projects, **Cloudflare Pages** is recommended as it's simpler and more optimized for static sites.
+
 ### Other Static Hosting Services
 
 This project can also be deployed to:
