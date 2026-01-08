@@ -15,6 +15,8 @@ export async function loadWasm(): Promise<WasmModule> {
   try {
     // Dynamic import for WASM module
     // This will be the actual WASM module after building with wasm-pack
+    // The type definition file (spectrogram_wasm.d.ts) is committed to the repo
+    // to allow TypeScript to resolve the import during type checking
     const module = await import('./pkg/spectrogram_wasm');
     await module.default();
     wasmModule = module as unknown as WasmModule;
