@@ -109,6 +109,17 @@ impl STFTProcessor {
             10.0f32.powf(ref_db / 20.0)
         };
         
+        // Calculate reference dB level for top_db clipping
+        let ref_db_level = if ref_db == 0.0 {
+            if max_magnitude > 0.0 {
+                20.0 * max_magnitude.log10()
+            } else {
+                max_db
+            }
+        } else {
+            ref_db
+        };
+        
         magnitude_spectrum
             .iter()
             .map(|&magnitude| {
@@ -118,18 +129,8 @@ impl STFTProcessor {
                     min_db
                 };
                 // Apply top_db clipping: clip values that are more than top_db below the reference
-                let clipped_db = if ref_db == 0.0 {
-                    // When using max as reference, clip values more than top_db below max
-                    let max_db_value = if max_magnitude > 0.0 {
-                        20.0 * max_magnitude.log10()
-                    } else {
-                        max_db
-                    };
-                    db.max(max_db_value - top_db).min(max_db).max(min_db)
-                } else {
-                    // When using explicit ref_db, clip values more than top_db below ref_db
-                    db.max(ref_db - top_db).min(max_db).max(min_db)
-                };
+                // top_db means "clip values more than top_db below the reference"
+                let clipped_db = db.max(ref_db_level - top_db).min(max_db).max(min_db);
                 clipped_db
             })
             .collect()
