@@ -19,6 +19,9 @@ export class ExportService {
     if (canvas) {
       const canvasDataUrl = canvas.toDataURL('image/png');
       const svg = this.annotationLayer.getSVG();
+      if (!svg) {
+        return svgString;
+      }
       
       // Create a new SVG that includes the canvas image and annotations
       const combinedSvg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
