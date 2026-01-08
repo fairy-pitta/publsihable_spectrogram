@@ -7,7 +7,6 @@ export class CanvasSpectrogramRenderer implements IRenderer {
   private canvas: HTMLCanvasElement;
   private context: CanvasRenderingContext2D;
   private annotations: Map<string, Annotation> = new Map();
-  private dpr: number = 1;
 
   constructor(canvas: HTMLCanvasElement) {
     this.canvas = canvas;
@@ -19,7 +18,6 @@ export class CanvasSpectrogramRenderer implements IRenderer {
     ctx.imageSmoothingEnabled = true;
     ctx.imageSmoothingQuality = 'high';
     this.context = ctx;
-    this.dpr = window.devicePixelRatio || 1;
   }
 
   render(spectrogram: Spectrogram, options: RenderOptions): void {
@@ -151,13 +149,13 @@ export class CanvasSpectrogramRenderer implements IRenderer {
     const timeRange = clampedTimeMax - clampedTimeMin;
     const freqRange = clampedFreqMax - clampedFreqMin;
     
-    // Convert time to time frame indices
-    const timeFrameMin = Math.max(0, Math.floor((clampedTimeMin / totalDuration) * finalSpectrogram.nTimeFrames));
-    const timeFrameMax = Math.min(finalSpectrogram.nTimeFrames - 1, Math.ceil((clampedTimeMax / totalDuration) * finalSpectrogram.nTimeFrames));
+    // Convert time to time frame indices (calculated but not used directly in current implementation)
+    // const timeFrameMin = Math.max(0, Math.floor((clampedTimeMin / totalDuration) * finalSpectrogram.nTimeFrames));
+    // const timeFrameMax = Math.min(finalSpectrogram.nTimeFrames - 1, Math.ceil((clampedTimeMax / totalDuration) * finalSpectrogram.nTimeFrames));
     
-    // Convert frequency to frequency bin indices
-    const freqBinMin = Math.max(0, Math.floor((clampedFreqMin / maxFreq) * finalSpectrogram.nFreqBins));
-    const freqBinMax = Math.min(finalSpectrogram.nFreqBins - 1, Math.ceil((clampedFreqMax / maxFreq) * finalSpectrogram.nFreqBins));
+    // Convert frequency to frequency bin indices (calculated but not used directly in current implementation)
+    // const freqBinMin = Math.max(0, Math.floor((clampedFreqMin / maxFreq) * finalSpectrogram.nFreqBins));
+    // const freqBinMax = Math.min(finalSpectrogram.nFreqBins - 1, Math.ceil((clampedFreqMax / maxFreq) * finalSpectrogram.nFreqBins));
 
     for (let y = 0; y < plotHeight; y++) {
       for (let x = 0; x < plotWidth; x++) {
