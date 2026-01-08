@@ -1,6 +1,9 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 export default defineConfig({
   plugins: [react()],
@@ -12,11 +15,6 @@ export default defineConfig({
       '@presentation': path.resolve(__dirname, './src/presentation'),
     },
   },
-  test: {
-    globals: true,
-    environment: 'jsdom',
-    setupFiles: './tests/setup.ts',
-  },
   server: {
     fs: {
       allow: ['..'],
@@ -26,3 +24,4 @@ export default defineConfig({
     exclude: ['@infrastructure/wasm/pkg'],
   },
 });
+

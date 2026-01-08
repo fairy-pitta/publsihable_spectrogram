@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { SpectrogramRenderService } from '@application/services/SpectrogramRenderService';
 import { AnnotationService } from '@application/services/AnnotationService';
 import { ExportService } from '@application/services/ExportService';
@@ -13,6 +13,7 @@ export function useSpectrogram(canvasRef: React.RefObject<HTMLCanvasElement>, sv
   const [annotationService, setAnnotationService] = useState<AnnotationService>(new AnnotationService());
   const [exportService, setExportService] = useState<ExportService | null>(null);
   const [annotationLayer, setAnnotationLayer] = useState<SVGAnnotationLayer | null>(null);
+  const prevAnnotationCountRef = useRef<number>(0);
   const [renderOptions, setRenderOptions] = useState<RenderOptions>({
     colormap: 'viridis',
     brightness: 1.0,
@@ -47,6 +48,34 @@ export function useSpectrogram(canvasRef: React.RefObject<HTMLCanvasElement>, sv
     }
   }, [canvasRef, svgRef, annotationService]);
 
+  // Sync annotations from annotationService to SVGAnnotationLayer when annotations change
+  // Use interval to check for changes since annotationService doesn't emit events
+  useEffect(() => {
+    if (!annotationLayer || !renderService) return;
+
+    const syncAnnotations = () => {
+      const annotations = annotationService.getAnnotations();
+      const currentCount = annotations.length;
+      if (currentCount !== prevAnnotationCountRef.current) {
+        // Clear and re-add all annotations to ensure sync
+        annotationLayer.clearAnnotations();
+        annotations.forEach((annotation) => {
+          renderService.addAnnotation(annotation);
+          annotationLayer.addAnnotation(annotation);
+        });
+        prevAnnotationCountRef.current = currentCount;
+      }
+    };
+
+    // Initial sync
+    syncAnnotations();
+
+    // Check every 100ms for changes
+    const interval = setInterval(syncAnnotations, 100);
+
+    return () => clearInterval(interval);
+  }, [annotationService, annotationLayer, renderService]);
+
   const render = useCallback((spectrogram: Spectrogram, options?: Partial<RenderOptions>) => {
     if (!renderService) return;
 
@@ -55,6 +84,9 @@ export function useSpectrogram(canvasRef: React.RefObject<HTMLCanvasElement>, sv
   }, [renderService, renderOptions]);
 
   const addAnnotation = useCallback((annotation: Annotation) => {
+    if (!annotation) {
+      return;
+    }
     annotationService.addAnnotation(annotation);
     renderService?.addAnnotation(annotation);
     annotationLayer?.addAnnotation(annotation);

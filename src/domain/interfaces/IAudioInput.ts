@@ -8,3 +8,4 @@ export interface IAudioInput {
   removeAudioDataListener(callback: (buffer: AudioBuffer) => void): void;
   isSupported(): boolean;
 }
+

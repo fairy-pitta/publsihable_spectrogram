@@ -86,3 +86,4 @@ describe('AnnotationService', () => {
     expect(updated?.properties.text).toBe('Updated');
   });
 });
+

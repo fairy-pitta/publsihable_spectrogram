@@ -54,3 +54,4 @@ mod tests {
         assert!(reduced[0] > 0.0);
     }
 }
+

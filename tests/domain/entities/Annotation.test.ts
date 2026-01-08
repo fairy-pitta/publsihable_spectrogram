@@ -68,3 +68,4 @@ describe('Annotation', () => {
     expect(annotation.properties.height).toBe(100);
   });
 });
+

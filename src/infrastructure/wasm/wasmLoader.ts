@@ -16,3 +16,4 @@ export async function loadWasm(): Promise<any> {
     throw new Error('WASM module not available. Please build it first with: npm run build:wasm');
   }
 }
+

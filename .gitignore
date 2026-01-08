@@ -28,3 +28,4 @@ wasm/target
 wasm/pkg
 wasm/Cargo.lock
 src/infrastructure/wasm/pkg
+

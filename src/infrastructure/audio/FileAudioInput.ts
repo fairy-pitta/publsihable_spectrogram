@@ -64,3 +64,4 @@ export class FileAudioInput implements IAudioInput {
     return typeof File !== 'undefined' && typeof AudioContext !== 'undefined';
   }
 }
+

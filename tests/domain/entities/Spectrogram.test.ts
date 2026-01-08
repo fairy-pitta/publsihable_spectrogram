@@ -65,3 +65,4 @@ describe('Spectrogram', () => {
     expect(spectrogram.getValue(100, 20)).toBe(0);
   });
 });
+

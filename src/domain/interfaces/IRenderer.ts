@@ -21,3 +21,4 @@ export interface IRenderer {
   exportToSVG(): string;
   exportToPNG(dpi?: number): Promise<Blob>;
 }
+

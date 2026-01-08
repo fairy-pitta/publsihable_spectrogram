@@ -65,11 +65,16 @@ export function AnnotationEditor({ annotationService: externalAnnotationService,
     const position = spectrogramCenter || { x, y };
     const annotation = new Annotation(selectedType, position, properties);
     
-    // Use external addAnnotation if available (from useSpectrogram), otherwise use annotationService directly
+    // Always use external addAnnotation if available (from useSpectrogram) to ensure SVGAnnotationLayer is updated
+    // If externalAddAnnotation is not available, still add to annotationService but warn user
     if (externalAddAnnotation) {
       externalAddAnnotation(annotation);
     } else {
+      // Add to service, but this won't update SVGAnnotationLayer
+      // The useEffect in useSpectrogram should sync this, but it's better to use externalAddAnnotation
       annotationService.addAnnotation(annotation);
+      // Force a re-render to trigger the sync effect
+      forceUpdate({});
     }
     
     // Trigger re-render

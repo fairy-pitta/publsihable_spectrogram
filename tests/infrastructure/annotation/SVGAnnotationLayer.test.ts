@@ -115,3 +115,4 @@ describe('SVGAnnotationLayer', () => {
     expect(textElement?.textContent).toBe('Updated');
   });
 });
+

@@ -25,3 +25,4 @@ export class SpectrogramRenderService {
     return this.renderer.getCanvas();
   }
 }
+

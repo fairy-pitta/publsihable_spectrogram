@@ -16,3 +16,4 @@ export class AudioBuffer {
     return this.samples.length / this.sampleRate;
   }
 }
+

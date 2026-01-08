@@ -43,3 +43,4 @@ export class Spectrogram {
     return (timeFrame * this.hopLength) / this.sampleRate;
   }
 }
+

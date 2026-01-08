@@ -31,3 +31,4 @@ describe('AudioBuffer', () => {
     expect(buffer.duration).toBe(0);
   });
 });
+
