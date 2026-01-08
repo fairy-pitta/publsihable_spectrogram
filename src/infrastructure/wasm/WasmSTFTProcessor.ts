@@ -1,4 +1,4 @@
-import { IAudioInput, ISTFTProcessor, STFTParameters } from '@domain/interfaces/ISTFTProcessor';
+import { ISTFTProcessor, STFTParameters } from '@domain/interfaces/ISTFTProcessor';
 import { AudioBuffer } from '@domain/entities/AudioBuffer';
 import { Spectrogram } from '@domain/entities/Spectrogram';
 import { loadWasm } from './wasmLoader';
@@ -18,7 +18,10 @@ export class WasmSTFTProcessor implements ISTFTProcessor {
   }
 
   async process(audioBuffer: AudioBuffer, params: STFTParameters): Promise<Spectrogram> {
-    if (!this.processor || this.shouldRecreateProcessor(params)) {
+    if (!this.processor || !this.wasmModule || this.shouldRecreateProcessor(params)) {
+      if (!this.wasmModule) {
+        throw new Error('WASM module not initialized');
+      }
       this.processor = new this.wasmModule.STFTProcessor(
         params.nFft,
         params.hopLength,
@@ -153,6 +156,9 @@ export class WasmSTFTProcessor implements ISTFTProcessor {
       return data;
     }
 
+    if (!this.wasmModule) {
+      throw new Error('WASM module not initialized');
+    }
     const sampleRate = params.sampleRate || 44100;
     const melFilterBankFlat = this.wasmModule.compute_mel_filter_bank(
       params.nMelBands,
@@ -186,6 +192,9 @@ export class WasmSTFTProcessor implements ISTFTProcessor {
     nTimeFrames: number,
     params: STFTParameters
   ): Float32Array {
+    if (!this.wasmModule) {
+      throw new Error('WASM module not initialized');
+    }
     const sampleRate = params.sampleRate || 44100;
     const logData = this.wasmModule.apply_log_frequency_scale(
       data,

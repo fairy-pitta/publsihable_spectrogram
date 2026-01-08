@@ -1,9 +1,7 @@
 /**
  * Type definitions for WASM module exports
  */
-import type { InitOutput } from './pkg/spectrogram_wasm';
-
-export interface WasmModule extends InitOutput {
+export interface WasmModule {
   STFTProcessor: new (nFft: number, hopLength: number, windowType: string) => STFTProcessorInstance;
   NoiseReducer: new () => NoiseReducerInstance;
   compute_mel_filter_bank: (nMels: number, nFft: number, sampleRate: number, fmin: number, fmax: number) => Float32Array;
@@ -11,6 +9,7 @@ export interface WasmModule extends InitOutput {
   hz_to_mel: (hz: number) => number;
   mel_to_hz: (mel: number) => number;
   default: () => Promise<void>;
+  readonly memory: WebAssembly.Memory;
 }
 
 export interface STFTProcessorInstance {
