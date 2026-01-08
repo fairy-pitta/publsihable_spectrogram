@@ -64,7 +64,9 @@ describe('Colormap', () => {
     expect(color3[0]).toBeLessThanOrEqual(1);
     expect(color4[0]).toBeGreaterThanOrEqual(0);
     expect(color4[0]).toBeLessThanOrEqual(1);
-    // Higher contrast should push values further from 0.5
+    // With contrast < 1, values move away from 0.5
+    // With contrast > 1, values move further away from 0.5
+    // So contrast 2.0 should push values further from 0.5 than contrast 0.5
     expect(Math.abs(color4[0] - 0.5)).toBeGreaterThan(Math.abs(color3[0] - 0.5));
   });
 
