@@ -167,7 +167,7 @@ This project is fully compatible with **Cloudflare Pages**:
      curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y && export PATH="$HOME/.cargo/bin:$PATH" && npm run build
      ```
 
-**Note**: This project is **NOT suitable for Cloudflare Workers** (serverless functions). Use **Cloudflare Pages** instead for static site hosting.
+**Note**: While this project can technically be deployed to **Cloudflare Workers** using Workers Sites (see below), **Cloudflare Pages** is the recommended and simpler option for static site hosting.
 
 ### Other Static Hosting Services
 
