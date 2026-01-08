@@ -26,10 +26,24 @@ export class CanvasSpectrogramRenderer implements IRenderer {
     try {
       const ctx = this.context;
       
-      // Get canvas display size
+      // Get canvas display size with multiple fallbacks
       const rect = this.canvas.getBoundingClientRect();
-      const displayWidth = rect.width || this.canvas.offsetWidth || 800;
-      const displayHeight = rect.height || this.canvas.offsetHeight || 600;
+      let displayWidth = rect.width;
+      let displayHeight = rect.height;
+      
+      // Fallback chain for width
+      if (!displayWidth || displayWidth === 0 || isNaN(displayWidth)) {
+        displayWidth = this.canvas.offsetWidth || this.canvas.clientWidth || 800;
+      }
+      
+      // Fallback chain for height
+      if (!displayHeight || displayHeight === 0 || isNaN(displayHeight)) {
+        displayHeight = this.canvas.offsetHeight || this.canvas.clientHeight || 600;
+      }
+      
+      // Ensure minimum size
+      displayWidth = Math.max(displayWidth, 100);
+      displayHeight = Math.max(displayHeight, 100);
       
       // Setup high DPI canvas
       const physicalWidth = Math.floor(displayWidth * this.dpr);
@@ -46,9 +60,13 @@ export class CanvasSpectrogramRenderer implements IRenderer {
         // Scale context to match device pixel ratio
         ctx.scale(this.dpr, this.dpr);
         
-        // Set display size (CSS pixels)
-        this.canvas.style.width = `${displayWidth}px`;
-        this.canvas.style.height = `${displayHeight}px`;
+        // Set display size (CSS pixels) - only if not already set
+        if (!this.canvas.style.width) {
+          this.canvas.style.width = `${displayWidth}px`;
+        }
+        if (!this.canvas.style.height) {
+          this.canvas.style.height = `${displayHeight}px`;
+        }
       }
       
       // Use display dimensions for rendering calculations
