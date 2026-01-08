@@ -135,7 +135,8 @@ export class CanvasSpectrogramRenderer implements IRenderer {
     for (let y = 0; y < plotHeight; y++) {
       for (let x = 0; x < plotWidth; x++) {
         // Use continuous coordinates for interpolation
-        const freqBin = (y / plotHeight) * finalSpectrogram.nFreqBins;
+        // Invert Y axis: top (y=0) should show high frequencies, bottom (y=plotHeight) should show low frequencies
+        const freqBin = (1 - y / plotHeight) * finalSpectrogram.nFreqBins;
         const timeFrame = (x / plotWidth) * finalSpectrogram.nTimeFrames;
 
         // Use bilinear interpolation for smoother rendering
