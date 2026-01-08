@@ -228,6 +228,13 @@ export class CanvasSpectrogramRenderer implements IRenderer {
   }
 
 
+  /**
+   * Performs bilinear interpolation to get a value at non-integer frequency and time coordinates
+   * @param spectrogram - The spectrogram data
+   * @param freqBin - Frequency bin (can be fractional)
+   * @param timeFrame - Time frame (can be fractional)
+   * @returns Interpolated value, or 0 if invalid
+   */
   private bilinearInterpolation(
     spectrogram: Spectrogram,
     freqBin: number,
@@ -268,6 +275,12 @@ export class CanvasSpectrogramRenderer implements IRenderer {
     return Number.isFinite(result) ? result : 0;
   }
 
+  /**
+   * Applies Gaussian smoothing filter to the spectrogram
+   * @param spectrogram - The spectrogram to smooth
+   * @param smoothing - Smoothing factor (0.0 = no smoothing, 1.0 = full smoothing)
+   * @returns A new smoothed spectrogram
+   */
   private applySmoothing(spectrogram: Spectrogram, smoothing: number): Spectrogram {
     // Apply Gaussian smoothing filter
     // Simple 3x3 Gaussian kernel for smoothing
@@ -316,6 +329,11 @@ export class CanvasSpectrogramRenderer implements IRenderer {
     );
   }
 
+  /**
+   * Applies 2x oversampling by interpolating time frames
+   * @param spectrogram - The spectrogram to oversample
+   * @returns A new oversampled spectrogram
+   */
   private applyOversampling(spectrogram: Spectrogram): Spectrogram {
     // Oversample by interpolating time frames (2x oversampling)
     const oversampleFactor = 2;

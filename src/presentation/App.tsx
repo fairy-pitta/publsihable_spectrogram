@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useRef } from 'react';
+import React, { useState, useCallback } from 'react';
 import { SpectrogramView } from './components/SpectrogramView/SpectrogramView';
 import { ControlsPanel } from './components/ControlsPanel/ControlsPanel';
 import { AnnotationEditor } from './components/AnnotationEditor/AnnotationEditor';
@@ -112,7 +112,7 @@ function App() {
               type="file"
               accept=".wav,.mp3,.ogg,.m4a,audio/wav,audio/mpeg,audio/ogg,audio/mp4"
               onChange={handleFileUpload}
-              style={{ display: 'none' }}
+              className="file-input-hidden"
             />
           </label>
           <button onClick={() => setShowExportDialog(true)}>Export</button>
@@ -142,7 +142,11 @@ function App() {
         </div>
 
         <div className="main-view">
-          {error && <div className="error-message">Error: {error}</div>}
+          {error && (
+            <div className="error-message" role="alert">
+              <strong>Error:</strong> {error}
+            </div>
+          )}
           {isProcessing && <div className="processing-message">Processing...</div>}
 
           {spectrogram ? (

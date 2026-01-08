@@ -2,12 +2,13 @@ import { IAudioInput, ISTFTProcessor, STFTParameters } from '@domain/interfaces/
 import { AudioBuffer } from '@domain/entities/AudioBuffer';
 import { Spectrogram } from '@domain/entities/Spectrogram';
 import { loadWasm } from './wasmLoader';
+import type { WasmModule, STFTProcessorInstance } from './types';
 
 export class WasmSTFTProcessor implements ISTFTProcessor {
-  private wasmModule: any = null;
-  private processor: any = null;
+  private wasmModule: WasmModule | null = null;
+  private processor: STFTProcessorInstance | null = null;
 
-  private constructor(wasmModule: any) {
+  private constructor(wasmModule: WasmModule) {
     this.wasmModule = wasmModule;
   }
 
@@ -131,12 +132,14 @@ export class WasmSTFTProcessor implements ISTFTProcessor {
   }
 
   private shouldRecreateProcessor(params: STFTParameters): boolean {
-    if (!this.processor) return true;
+    if (!this.processor || !this.wasmModule) return true;
 
+    // Check if processor parameters match
+    const processor = this.processor as unknown as { nFft?: number; hopLength?: number; windowType?: string };
     return (
-      this.processor.nFft !== params.nFft ||
-      this.processor.hopLength !== params.hopLength ||
-      this.processor.windowType !== params.windowType
+      processor.nFft !== params.nFft ||
+      processor.hopLength !== params.hopLength ||
+      processor.windowType !== params.windowType
     );
   }
 

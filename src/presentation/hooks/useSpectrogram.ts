@@ -8,22 +8,17 @@ import { Spectrogram } from '@domain/entities/Spectrogram';
 import { RenderOptions } from '@domain/interfaces/IRenderer';
 import { Annotation } from '@domain/entities/Annotation';
 
+/**
+ * Custom hook for managing spectrogram rendering and annotations
+ * @param canvasRef - Reference to the canvas element for spectrogram rendering
+ * @param svgRef - Reference to the SVG element for annotation rendering
+ * @returns Object containing render function, annotation management functions, and services
+ */
 export function useSpectrogram(canvasRef: React.RefObject<HTMLCanvasElement>, svgRef: React.RefObject<SVGSVGElement>) {
   const [renderService, setRenderService] = useState<SpectrogramRenderService | null>(null);
-  const [annotationService, setAnnotationService] = useState<AnnotationService>(new AnnotationService());
+  const [annotationService] = useState<AnnotationService>(() => new AnnotationService());
   const [exportService, setExportService] = useState<ExportService | null>(null);
   const [annotationLayer, setAnnotationLayer] = useState<SVGAnnotationLayer | null>(null);
-  const prevAnnotationCountRef = useRef<number>(0);
-  const [renderOptions, setRenderOptions] = useState<RenderOptions>({
-    colormap: 'viridis',
-    brightness: 1.0,
-    contrast: 1.0,
-    gamma: 1.0,
-    showAxes: true,
-    showColorbar: true,
-    dbMin: -80,
-    dbMax: 0,
-  });
 
   useEffect(() => {
     if (canvasRef.current && svgRef.current) {
@@ -49,39 +44,35 @@ export function useSpectrogram(canvasRef: React.RefObject<HTMLCanvasElement>, sv
   }, [canvasRef, svgRef, annotationService]);
 
   // Sync annotations from annotationService to SVGAnnotationLayer when annotations change
-  // Use interval to check for changes since annotationService doesn't emit events
+  // Use event-based synchronization instead of polling
   useEffect(() => {
     if (!annotationLayer || !renderService) return;
 
     const syncAnnotations = () => {
       const annotations = annotationService.getAnnotations();
-      const currentCount = annotations.length;
-      if (currentCount !== prevAnnotationCountRef.current) {
-        // Clear and re-add all annotations to ensure sync
-        annotationLayer.clearAnnotations();
-        annotations.forEach((annotation) => {
-          renderService.addAnnotation(annotation);
-          annotationLayer.addAnnotation(annotation);
-        });
-        prevAnnotationCountRef.current = currentCount;
-      }
+      // Clear and re-add all annotations to ensure sync
+      annotationLayer.clearAnnotations();
+      annotations.forEach((annotation) => {
+        renderService.addAnnotation(annotation);
+        annotationLayer.addAnnotation(annotation);
+      });
     };
 
     // Initial sync
     syncAnnotations();
 
-    // Check every 100ms for changes
-    const interval = setInterval(syncAnnotations, 100);
+    // Subscribe to annotation changes
+    const unsubscribe = annotationService.subscribe(syncAnnotations);
 
-    return () => clearInterval(interval);
+    return () => {
+      unsubscribe();
+    };
   }, [annotationService, annotationLayer, renderService]);
 
-  const render = useCallback((spectrogram: Spectrogram, options?: Partial<RenderOptions>) => {
+  const render = useCallback((spectrogram: Spectrogram, options: RenderOptions) => {
     if (!renderService) return;
-
-    const finalOptions = { ...renderOptions, ...options };
-    renderService.render(spectrogram, finalOptions);
-  }, [renderService, renderOptions]);
+    renderService.render(spectrogram, options);
+  }, [renderService]);
 
   const addAnnotation = useCallback((annotation: Annotation) => {
     if (!annotation) {
@@ -113,10 +104,6 @@ export function useSpectrogram(canvasRef: React.RefObject<HTMLCanvasElement>, sv
     annotationLayer?.clearAnnotations();
   }, [annotationService, renderService, annotationLayer]);
 
-  const updateRenderOptions = useCallback((options: Partial<RenderOptions>) => {
-    setRenderOptions((prev) => ({ ...prev, ...options }));
-  }, []);
-
   const exportToPNG = useCallback(async (dpi: number = 300) => {
     if (!exportService) throw new Error('Export service not available');
     return exportService.exportToPNG(dpi);
@@ -143,12 +130,6 @@ export function useSpectrogram(canvasRef: React.RefObject<HTMLCanvasElement>, sv
     updateAnnotation,
     removeAnnotation,
     clearAnnotations,
-    updateRenderOptions,
-    renderOptions,
-    exportToPNG,
-    exportToSVG,
-    downloadPNG,
-    downloadSVG,
     annotations: annotationService.getAnnotations(),
     annotationService,
     exportService,

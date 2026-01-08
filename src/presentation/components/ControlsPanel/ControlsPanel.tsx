@@ -54,7 +54,7 @@ export function ControlsPanel({
           Window:
           <select
             value={stftParams.windowType}
-            onChange={(e) => onSTFTParamsChange({ windowType: e.target.value as any })}
+            onChange={(e) => onSTFTParamsChange({ windowType: e.target.value as 'hann' | 'hamming' | 'blackman' })}
           >
             <option value="hann">Hann</option>
             <option value="hamming">Hamming</option>
@@ -66,7 +66,7 @@ export function ControlsPanel({
           Magnitude Type:
           <select
             value={stftParams.magnitudeType}
-            onChange={(e) => onSTFTParamsChange({ magnitudeType: e.target.value as any })}
+            onChange={(e) => onSTFTParamsChange({ magnitudeType: e.target.value as 'magnitude' | 'power' })}
           >
             <option value="magnitude">Magnitude</option>
             <option value="power">Power</option>
@@ -137,7 +137,7 @@ export function ControlsPanel({
           Colormap:
           <select
             value={renderOptions.colormap}
-            onChange={(e) => onRenderOptionsChange({ colormap: e.target.value as any })}
+            onChange={(e) => onRenderOptionsChange({ colormap: e.target.value as 'viridis' | 'magma' | 'grayscale' })}
           >
             <option value="viridis">Viridis</option>
             <option value="magma">Magma</option>

@@ -1,17 +1,7 @@
-import React, { useState, useContext, createContext, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Annotation, AnnotationType } from '@domain/entities/Annotation';
 import { AnnotationService } from '@application/services/AnnotationService';
 import './AnnotationEditor.css';
-
-const AnnotationServiceContext = createContext<AnnotationService | null>(null);
-
-export function AnnotationEditorProvider({ children, annotationService }: { children: React.ReactNode; annotationService: AnnotationService }) {
-  return (
-    <AnnotationServiceContext.Provider value={annotationService}>
-      {children}
-    </AnnotationServiceContext.Provider>
-  );
-}
 
 interface AnnotationEditorProps {
   annotationService?: AnnotationService;
@@ -66,7 +56,7 @@ export function AnnotationEditor({ annotationService: externalAnnotationService,
   const handleEdit = (annotation: Annotation) => {
     setEditingAnnotationId(annotation.id);
     setSelectedType(annotation.type);
-    setColor((annotation.properties.color as string) || '#000000');
+    setColor(String(annotation.properties.color || '#000000'));
     setX(annotation.position.x);
     setY(annotation.position.y);
     
@@ -95,7 +85,7 @@ export function AnnotationEditor({ annotationService: externalAnnotationService,
   };
 
   const handleSave = () => {
-    let properties: any = {};
+    let properties: Record<string, number | string | boolean | undefined> = {};
 
     switch (selectedType) {
       case AnnotationType.Text:
@@ -146,8 +136,6 @@ export function AnnotationEditor({ annotationService: externalAnnotationService,
       // Reset form
       handleCancelEdit();
     }
-    
-    forceUpdate({});
   };
 
   return (
@@ -174,7 +162,7 @@ export function AnnotationEditor({ annotationService: externalAnnotationService,
           <input type="number" value={spectrogramCenter?.y ?? y} onChange={(e) => setY(parseInt(e.target.value))} disabled={!!spectrogramCenter} />
         </label>
         {spectrogramCenter && (
-          <p style={{ fontSize: '12px', color: '#666', margin: '5px 0' }}>
+          <p className="annotation-center-hint">
             Position will be set to center. You can drag the annotation after adding it.
           </p>
         )}
@@ -221,16 +209,14 @@ export function AnnotationEditor({ annotationService: externalAnnotationService,
                 type="button"
                 onClick={() => setColor(option.value)}
                 className={`color-option ${color === option.value ? 'selected' : ''}`}
-                style={{
-                  backgroundColor: option.value,
-                }}
+                style={{ backgroundColor: option.value }}
                 title={option.name}
               />
             ))}
           </div>
         </label>
 
-        <div style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>
+        <div className="annotation-form-actions">
           <button onClick={handleSave}>
             {editingAnnotationId ? 'Update Annotation' : 'Add Annotation'}
           </button>
@@ -262,7 +248,7 @@ export function AnnotationEditor({ annotationService: externalAnnotationService,
                   {annotation.properties.color && (
                     <div 
                       className="annotation-color-badge"
-                      style={{ backgroundColor: annotation.properties.color as string }}
+                      style={{ backgroundColor: String(annotation.properties.color) }}
                       title={`Color: ${annotation.properties.color}`}
                     />
                   )}
@@ -275,12 +261,12 @@ export function AnnotationEditor({ annotationService: externalAnnotationService,
                   )}
                   {annotation.type === AnnotationType.Arrow && (
                     <div className="annotation-details">
-                      <span>→ ({Math.round(annotation.position.x)}, {Math.round(annotation.position.y)}) to ({Math.round((annotation.properties.x2 as number) || 0)}, {Math.round((annotation.properties.y2 as number) || 0)})</span>
+                      <span>→ ({Math.round(annotation.position.x)}, {Math.round(annotation.position.y)}) to ({Math.round(Number(annotation.properties.x2 || 0))}, {Math.round(Number(annotation.properties.y2 || 0))})</span>
                     </div>
                   )}
                   {annotation.type === AnnotationType.Rectangle && (
                     <div className="annotation-details">
-                      <span>Size: {Math.round((annotation.properties.width as number) || 0)} × {Math.round((annotation.properties.height as number) || 50)}</span>
+                      <span>Size: {Math.round(Number(annotation.properties.width || 0))} × {Math.round(Number(annotation.properties.height || 50))}</span>
                     </div>
                   )}
                   {annotation.type === AnnotationType.Text && !annotation.properties.text && (

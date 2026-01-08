@@ -5,6 +5,10 @@ import { AudioBuffer } from '@domain/entities/AudioBuffer';
 import { Spectrogram } from '@domain/entities/Spectrogram';
 import { STFTParameters } from '@domain/interfaces/ISTFTProcessor';
 
+/**
+ * Custom hook for managing audio loading and processing
+ * @returns Object containing audio buffer, spectrogram, processing state, and control functions
+ */
 export function useAudioProcessing() {
   const [audioProcessingService, setAudioProcessingService] = useState<AudioProcessingService | null>(null);
   const [audioBuffer, setAudioBuffer] = useState<AudioBuffer | null>(null);

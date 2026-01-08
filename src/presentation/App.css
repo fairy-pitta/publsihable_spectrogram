@@ -121,6 +121,10 @@
   box-shadow: 0 2px 6px var(--pastel-shadow-soft);
 }
 
+.file-input-hidden {
+  display: none;
+}
+
 .app-content {
   display: flex;
   flex: 1;

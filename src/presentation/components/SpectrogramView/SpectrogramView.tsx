@@ -15,7 +15,7 @@ interface SpectrogramViewProps {
   onAddAnnotationReady?: (addAnnotation: (annotation: Annotation) => void) => void;
   onUpdateAnnotationReady?: (updateAnnotation: (annotation: Annotation) => void) => void;
   onCenterReady?: (center: { x: number; y: number }) => void;
-  onExportServiceReady?: (exportService: any) => void;
+  onExportServiceReady?: (exportService: ExportService) => void;
 }
 
 export function SpectrogramView({ spectrogram, renderOptions, onRender, onAnnotationServiceReady, onAddAnnotationReady, onUpdateAnnotationReady, onCenterReady, onExportServiceReady }: SpectrogramViewProps) {
@@ -117,8 +117,8 @@ export function SpectrogramView({ spectrogram, renderOptions, onRender, onAnnota
           
           if (arrowEnd && annotation.type === AnnotationType.Arrow) {
             // Dragging an arrow end handle
-            const x = arrowEnd === 'start' ? annotation.position.x : (annotation.properties.x2 as number);
-            const y = arrowEnd === 'start' ? annotation.position.y : (annotation.properties.y2 as number);
+            const x = arrowEnd === 'start' ? annotation.position.x : Number(annotation.properties.x2 || 0);
+            const y = arrowEnd === 'start' ? annotation.position.y : Number(annotation.properties.y2 || 0);
             const offsetX = e.clientX - svgRect.left - x;
             const offsetY = e.clientY - svgRect.top - y;
             dragStateRef.current = { annotationId, offsetX, offsetY, isArrowEnd: arrowEnd };
