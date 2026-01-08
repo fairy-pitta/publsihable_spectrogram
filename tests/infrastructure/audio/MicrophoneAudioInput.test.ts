@@ -33,6 +33,8 @@ describe('MicrophoneAudioInput', () => {
       createScriptProcessor: vi.fn().mockReturnValue(mockScriptProcessor),
       sampleRate: 44100,
       state: 'running',
+      close: vi.fn().mockResolvedValue(undefined),
+      destination: {},
     };
 
     global.navigator = {
