@@ -33,11 +33,18 @@ impl STFTProcessor {
 
     fn generate_window(n_fft: usize, window_type: WindowType) -> Vec<f32> {
         match window_type {
-            WindowType::Hann => (0..n_fft)
-                .map(|i| {
-                    0.5 * (1.0 - (2.0 * std::f32::consts::PI * i as f32 / (n_fft - 1) as f32).cos())
-                })
-                .collect(),
+            WindowType::Hann => {
+                if n_fft == 1 {
+                    return vec![1.0];
+                }
+                (0..n_fft)
+                    .map(|i| {
+                        // SciPy-compatible Hann window: 0.5 * (1 - cos(2*pi*i/(n-1)))
+                        let n_minus_1 = (n_fft - 1) as f32;
+                        0.5 * (1.0 - (2.0 * std::f32::consts::PI * i as f32 / n_minus_1).cos())
+                    })
+                    .collect()
+            },
             WindowType::Hamming => (0..n_fft)
                 .map(|i| {
                     0.54 - 0.46 * (2.0 * std::f32::consts::PI * i as f32 / (n_fft - 1) as f32).cos()
@@ -89,16 +96,41 @@ impl STFTProcessor {
         output
     }
 
-    pub fn to_db(&self, magnitude_spectrum: &[f32], min_db: f32, max_db: f32) -> Vec<f32> {
+    pub fn to_db(&self, magnitude_spectrum: &[f32], ref_db: f32, top_db: f32, min_db: f32, max_db: f32) -> Vec<f32> {
+        // Calculate reference value: if ref_db is 0.0, use maximum magnitude as reference
+        let max_magnitude = magnitude_spectrum.iter().fold(0.0f32, |a, &b| a.max(b));
+        let ref_value = if ref_db == 0.0 {
+            if max_magnitude > 0.0 {
+                max_magnitude
+            } else {
+                1.0
+            }
+        } else {
+            10.0f32.powf(ref_db / 20.0)
+        };
+        
         magnitude_spectrum
             .iter()
             .map(|&magnitude| {
                 let db = if magnitude > 0.0 {
-                    20.0 * magnitude.log10()
+                    20.0 * (magnitude / ref_value).log10()
                 } else {
                     min_db
                 };
-                db.max(min_db).min(max_db)
+                // Apply top_db clipping: clip values that are more than top_db below the reference
+                let clipped_db = if ref_db == 0.0 {
+                    // When using max as reference, clip values more than top_db below max
+                    let max_db_value = if max_magnitude > 0.0 {
+                        20.0 * max_magnitude.log10()
+                    } else {
+                        max_db
+                    };
+                    db.max(max_db_value - top_db).min(max_db).max(min_db)
+                } else {
+                    // When using explicit ref_db, clip values more than top_db below ref_db
+                    db.max(ref_db - top_db).min(max_db).max(min_db)
+                };
+                clipped_db
             })
             .collect()
     }

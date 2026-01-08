@@ -21,15 +21,19 @@ function App() {
     showColorbar: true,
     dbMin: -80,
     dbMax: 0,
+    smoothing: 0.0,
+    oversampling: false,
   });
 
   const [stftParams, setSTFTParams] = useState<STFTParameters>({
     nFft: 2048,
-    hopLength: 512,
+    hopLength: 512, // 2048 / 4 = 512
     windowType: 'hann',
     magnitudeType: 'magnitude',
     dbMin: -80,
     dbMax: 0,
+    refDb: 0.0, // 0.0 means use maximum as reference
+    topDb: 80.0, // Default top_db is 80
   });
 
   const [showExportDialog, setShowExportDialog] = useState(false);
@@ -62,7 +66,14 @@ function App() {
   }, [audioBuffer, stftParams, processAudio]);
 
   const handleSTFTParamsChange = useCallback((params: Partial<STFTParameters>) => {
-    setSTFTParams((prev) => ({ ...prev, ...params }));
+    setSTFTParams((prev) => {
+      const updated = { ...prev, ...params };
+      // If nFft changed, automatically update hopLength to nFft / 4
+      if (params.nFft !== undefined && params.hopLength === undefined) {
+        updated.hopLength = Math.floor(params.nFft / 4);
+      }
+      return updated;
+    });
   }, []);
 
   const handleRenderOptionsChange = useCallback((options: Partial<RenderOptions>) => {

@@ -42,21 +42,35 @@ export class WasmSTFTProcessor implements ISTFTProcessor {
       spectrumData = magnitudeData;
     }
 
-    // Apply dB conversion
-    const dbData = this.processor.to_db(spectrumData, params.dbMin, params.dbMax);
+    // Apply dB conversion with ref and top_db
+    const refDb = params.refDb ?? 0.0; // 0.0 means use maximum as reference
+    const topDb = params.topDb ?? 80.0; // Default top_db is 80
+    const dbData = this.processor.to_db(spectrumData, refDb, topDb, params.dbMin, params.dbMax);
 
-    // Calculate dimensions
-    const nFreqBins = Math.floor(params.nFft / 2) + 1;
+    // Store sample rate in params if not already set
+    const paramsWithSampleRate = {
+      ...params,
+      sampleRate: params.sampleRate || audioBuffer.sampleRate,
+    };
+
+    // Calculate dimensions (may change if log-frequency scale is applied)
+    let nFreqBins = Math.floor(params.nFft / 2) + 1;
     const nTimeFrames = Math.ceil(audioBuffer.length / params.hopLength);
 
-    // Apply mel scale if requested
+    // Apply mel scale or log-frequency scale if requested
     let finalData = dbData;
+    let finalNFreqBins = nFreqBins;
     if (params.useMelScale && params.nMelBands) {
-      finalData = this.applyMelScale(dbData, nFreqBins, nTimeFrames, params);
+      finalData = this.applyMelScale(dbData, nFreqBins, nTimeFrames, paramsWithSampleRate);
+      finalNFreqBins = params.nMelBands;
+    } else if (params.useLogFrequency) {
+      finalData = this.applyLogFrequencyScale(dbData, nFreqBins, nTimeFrames, paramsWithSampleRate);
+      // Log-frequency scale maintains the same number of bins
+      finalNFreqBins = nFreqBins;
     }
 
     // Ensure data matches expected dimensions
-    const expectedLength = nFreqBins * nTimeFrames;
+    const expectedLength = finalNFreqBins * nTimeFrames;
     if (finalData.length !== expectedLength) {
       const correctedData = new Float32Array(expectedLength);
       const copyLength = Math.min(finalData.length, expectedLength);
@@ -66,7 +80,7 @@ export class WasmSTFTProcessor implements ISTFTProcessor {
 
     return new Spectrogram(
       finalData,
-      nFreqBins,
+      finalNFreqBins,
       nTimeFrames,
       audioBuffer.sampleRate,
       params.nFft,
@@ -94,13 +108,13 @@ export class WasmSTFTProcessor implements ISTFTProcessor {
       return data;
     }
 
-    const sampleRate = params.nFft; // Approximate from n_fft
+    const sampleRate = params.sampleRate || 44100;
     const melFilterBankFlat = this.wasmModule.compute_mel_filter_bank(
       params.nMelBands,
       params.nFft,
-      sampleRate * 2, // Approximate sample rate
+      sampleRate,
       0,
-      sampleRate
+      sampleRate / 2
     );
 
     const nBins = Math.floor(params.nFft / 2) + 1;
@@ -119,5 +133,22 @@ export class WasmSTFTProcessor implements ISTFTProcessor {
     }
 
     return melData;
+  }
+
+  private applyLogFrequencyScale(
+    data: Float32Array,
+    nFreqBins: number,
+    nTimeFrames: number,
+    params: STFTParameters
+  ): Float32Array {
+    const sampleRate = params.sampleRate || 44100;
+    const logData = this.wasmModule.apply_log_frequency_scale(
+      data,
+      nFreqBins,
+      nTimeFrames,
+      sampleRate,
+      params.nFft
+    );
+    return new Float32Array(logData);
   }
 }

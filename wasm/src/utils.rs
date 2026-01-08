@@ -50,6 +50,60 @@ pub fn generate_mel_filter_bank(
     filter_bank
 }
 
+/// Convert linear frequency bins to log-frequency scale
+/// This redistributes frequency bins to a logarithmic scale
+pub fn apply_log_frequency_scale(
+    data: &[f32],
+    n_freq_bins: usize,
+    n_time_frames: usize,
+    sample_rate: usize,
+    n_fft: usize,
+) -> Vec<f32> {
+    // Calculate frequency resolution
+    let freq_resolution = sample_rate as f32 / n_fft as f32;
+    
+    // Define log-frequency bins
+    // Use logarithmic spacing from fmin to fmax
+    let fmin = freq_resolution; // Start from first non-DC bin
+    let fmax = (sample_rate as f32) / 2.0; // Nyquist frequency
+    
+    // Number of output log-frequency bins (same as input for simplicity)
+    let n_log_bins = n_freq_bins;
+    
+    // Generate log-spaced frequency points
+    let log_freqs: Vec<f32> = (0..n_log_bins)
+        .map(|i| {
+            let log_fmin = fmin.ln();
+            let log_fmax = fmax.ln();
+            let t = i as f32 / (n_log_bins - 1) as f32;
+            (log_fmin + t * (log_fmax - log_fmin)).exp()
+        })
+        .collect();
+    
+    // Map linear bins to log bins
+    let mut output = Vec::with_capacity(n_log_bins * n_time_frames);
+    
+    for t in 0..n_time_frames {
+        for log_bin in 0..n_log_bins {
+            let target_freq = log_freqs[log_bin];
+            let target_linear_bin = (target_freq / freq_resolution).floor() as usize;
+            
+            // Use linear interpolation between adjacent bins
+            let bin_f0 = target_linear_bin.min(n_freq_bins - 1);
+            let bin_f1 = (target_linear_bin + 1).min(n_freq_bins - 1);
+            let alpha = (target_freq / freq_resolution) - target_linear_bin as f32;
+            
+            let value_f0 = data[t * n_freq_bins + bin_f0];
+            let value_f1 = data[t * n_freq_bins + bin_f1];
+            let interpolated_value = value_f0 * (1.0 - alpha) + value_f1 * alpha;
+            
+            output.push(interpolated_value);
+        }
+    }
+    
+    output
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

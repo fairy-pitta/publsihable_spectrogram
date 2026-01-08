@@ -30,8 +30,8 @@ impl STFTProcessor {
     }
 
     #[wasm_bindgen]
-    pub fn to_db(&self, magnitude_spectrum: &[f32], min_db: f32, max_db: f32) -> Vec<f32> {
-        self.processor.to_db(magnitude_spectrum, min_db, max_db)
+    pub fn to_db(&self, magnitude_spectrum: &[f32], ref_db: f32, top_db: f32, min_db: f32, max_db: f32) -> Vec<f32> {
+        self.processor.to_db(magnitude_spectrum, ref_db, top_db, min_db, max_db)
     }
 }
 
@@ -86,4 +86,15 @@ pub fn hz_to_mel(hz: f32) -> f32 {
 #[wasm_bindgen]
 pub fn mel_to_hz(mel: f32) -> f32 {
     utils::mel_to_hz(mel)
+}
+
+#[wasm_bindgen]
+pub fn apply_log_frequency_scale(
+    data: &[f32],
+    n_freq_bins: usize,
+    n_time_frames: usize,
+    sample_rate: usize,
+    n_fft: usize,
+) -> Vec<f32> {
+    utils::apply_log_frequency_scale(data, n_freq_bins, n_time_frames, sample_rate, n_fft)
 }

@@ -93,6 +93,39 @@ export function ControlsPanel({
             step={5}
           />
         </label>
+
+        <label>
+          Ref dB (0 = use max):
+          <input
+            type="number"
+            value={stftParams.refDb ?? 0.0}
+            onChange={(e) => onSTFTParamsChange({ refDb: parseFloat(e.target.value) })}
+            min={-120}
+            max={0}
+            step={5}
+          />
+        </label>
+
+        <label>
+          Top dB:
+          <input
+            type="number"
+            value={stftParams.topDb ?? 80.0}
+            onChange={(e) => onSTFTParamsChange({ topDb: parseFloat(e.target.value) })}
+            min={0}
+            max={120}
+            step={5}
+          />
+        </label>
+
+        <label>
+          <input
+            type="checkbox"
+            checked={stftParams.useLogFrequency ?? false}
+            onChange={(e) => onSTFTParamsChange({ useLogFrequency: e.target.checked })}
+          />
+          Use Log Frequency Scale
+        </label>
       </div>
 
       <button onClick={onRecompute} className="recompute-button">
@@ -168,6 +201,28 @@ export function ControlsPanel({
             onChange={(e) => onRenderOptionsChange({ showColorbar: e.target.checked })}
           />
           Show Colorbar
+        </label>
+
+        <label>
+          Smoothing:
+          <input
+            type="range"
+            min="0"
+            max="1"
+            step="0.1"
+            value={renderOptions.smoothing ?? 0.0}
+            onChange={(e) => onRenderOptionsChange({ smoothing: parseFloat(e.target.value) })}
+          />
+          <span>{(renderOptions.smoothing ?? 0.0).toFixed(1)}</span>
+        </label>
+
+        <label>
+          <input
+            type="checkbox"
+            checked={renderOptions.oversampling ?? false}
+            onChange={(e) => onRenderOptionsChange({ oversampling: e.target.checked })}
+          />
+          Oversampling
         </label>
       </div>
     </div>

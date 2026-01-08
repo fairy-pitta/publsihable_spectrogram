@@ -7,6 +7,7 @@ export class CanvasSpectrogramRenderer implements IRenderer {
   private canvas: HTMLCanvasElement;
   private context: CanvasRenderingContext2D;
   private annotations: Map<string, Annotation> = new Map();
+  private dpr: number = 1;
 
   constructor(canvas: HTMLCanvasElement) {
     this.canvas = canvas;
@@ -14,13 +15,44 @@ export class CanvasSpectrogramRenderer implements IRenderer {
     if (!ctx) {
       throw new Error('Failed to get 2D context from canvas');
     }
+    // Enable antialiasing for smoother rendering
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = 'high';
     this.context = ctx;
+    
+    // Setup high DPI support
+    this.setupHighDPICanvas(canvas);
+  }
+
+  private setupHighDPICanvas(canvas: HTMLCanvasElement): void {
+    this.dpr = window.devicePixelRatio || 1;
+    const updateCanvasSize = () => {
+      const rect = canvas.getBoundingClientRect();
+      
+      // Set actual canvas size in memory (physical pixels)
+      canvas.width = rect.width * this.dpr;
+      canvas.height = rect.height * this.dpr;
+      
+      // Scale context to match device pixel ratio
+      this.context.scale(this.dpr, this.dpr);
+      
+      // Set display size (CSS pixels)
+      canvas.style.width = `${rect.width}px`;
+      canvas.style.height = `${rect.height}px`;
+    };
+    
+    // Initial setup
+    updateCanvasSize();
+    
+    // Update on resize
+    window.addEventListener('resize', updateCanvasSize);
   }
 
   render(spectrogram: Spectrogram, options: RenderOptions): void {
     const ctx = this.context;
-    const width = this.canvas.width;
-    const height = this.canvas.height;
+    // Account for device pixel ratio in canvas dimensions
+    const width = this.canvas.width / this.dpr;
+    const height = this.canvas.height / this.dpr;
 
     // Clear canvas
     ctx.clearRect(0, 0, width, height);
@@ -43,33 +75,46 @@ export class CanvasSpectrogramRenderer implements IRenderer {
     const minDb = options.dbMin;
     const maxDb = options.dbMax;
     const dbRange = maxDb - minDb;
+    const smoothing = options.smoothing ?? 0.0;
+    const useOversampling = options.oversampling ?? false;
+
+    // Apply smoothing if requested
+    let smoothedSpectrogram = spectrogram;
+    if (smoothing > 0.0) {
+      smoothedSpectrogram = this.applySmoothing(spectrogram, smoothing);
+    }
+
+    // Apply oversampling if requested
+    let finalSpectrogram = smoothedSpectrogram;
+    if (useOversampling) {
+      finalSpectrogram = this.applyOversampling(smoothedSpectrogram);
+    }
 
     for (let y = 0; y < plotHeight; y++) {
       for (let x = 0; x < plotWidth; x++) {
-        const freqBin = Math.floor((y / plotHeight) * spectrogram.nFreqBins);
-        const timeFrame = Math.floor((x / plotWidth) * spectrogram.nTimeFrames);
+        // Use continuous coordinates for interpolation
+        const freqBin = (y / plotHeight) * finalSpectrogram.nFreqBins;
+        const timeFrame = (x / plotWidth) * finalSpectrogram.nTimeFrames;
 
-        if (freqBin >= 0 && freqBin < spectrogram.nFreqBins &&
-            timeFrame >= 0 && timeFrame < spectrogram.nTimeFrames) {
-          const dbValue = spectrogram.getValue(freqBin, timeFrame);
-          const normalized = (dbValue - minDb) / dbRange;
-          
-          const [r, g, b] = Colormap.valueToColor(
-            normalized,
-            0,
-            1,
-            options.colormap,
-            options.brightness,
-            options.contrast,
-            options.gamma
-          );
+        // Use bilinear interpolation for smoother rendering
+        const dbValue = this.bilinearInterpolation(finalSpectrogram, freqBin, timeFrame);
+        const normalized = (dbValue - minDb) / dbRange;
+        
+        const [r, g, b] = Colormap.valueToColor(
+          normalized,
+          0,
+          1,
+          options.colormap,
+          options.brightness,
+          options.contrast,
+          options.gamma
+        );
 
-          const index = (y * plotWidth + x) * 4;
-          data[index] = Math.floor(r * 255);
-          data[index + 1] = Math.floor(g * 255);
-          data[index + 2] = Math.floor(b * 255);
-          data[index + 3] = 255;
-        }
+        const index = (y * plotWidth + x) * 4;
+        data[index] = Math.floor(r * 255);
+        data[index + 1] = Math.floor(g * 255);
+        data[index + 2] = Math.floor(b * 255);
+        data[index + 3] = 255;
       }
     }
 
@@ -87,6 +132,116 @@ export class CanvasSpectrogramRenderer implements IRenderer {
 
     // Draw annotations
     this.drawAnnotations(ctx);
+  }
+
+  private bilinearInterpolation(
+    spectrogram: Spectrogram,
+    freqBin: number,
+    timeFrame: number
+  ): number {
+    // Clamp coordinates to valid range
+    const clampedFreqBin = Math.max(0, Math.min(freqBin, spectrogram.nFreqBins - 1));
+    const clampedTimeFrame = Math.max(0, Math.min(timeFrame, spectrogram.nTimeFrames - 1));
+
+    // Get integer coordinates
+    const f0 = Math.floor(clampedFreqBin);
+    const f1 = Math.min(f0 + 1, spectrogram.nFreqBins - 1);
+    const t0 = Math.floor(clampedTimeFrame);
+    const t1 = Math.min(t0 + 1, spectrogram.nTimeFrames - 1);
+
+    // Get fractional parts
+    const df = clampedFreqBin - f0;
+    const dt = clampedTimeFrame - t0;
+
+    // Get values at four corners
+    const v00 = spectrogram.getValue(f0, t0);
+    const v01 = spectrogram.getValue(f0, t1);
+    const v10 = spectrogram.getValue(f1, t0);
+    const v11 = spectrogram.getValue(f1, t1);
+
+    // Bilinear interpolation: first interpolate along time axis, then along frequency axis
+    const v0 = v00 * (1 - dt) + v01 * dt;
+    const v1 = v10 * (1 - dt) + v11 * dt;
+    return v0 * (1 - df) + v1 * df;
+  }
+
+  private applySmoothing(spectrogram: Spectrogram, smoothing: number): Spectrogram {
+    // Apply Gaussian smoothing filter
+    // Simple 3x3 Gaussian kernel for smoothing
+    const kernel = [
+      [1, 2, 1],
+      [2, 4, 2],
+      [1, 2, 1],
+    ];
+    const weight = smoothing; // 0.0 = no smoothing, 1.0 = full smoothing
+
+    const smoothedData = new Float32Array(spectrogram.data.length);
+
+    for (let t = 0; t < spectrogram.nTimeFrames; t++) {
+      for (let f = 0; f < spectrogram.nFreqBins; f++) {
+        let sum = 0;
+        let totalWeight = 0;
+
+        // Apply kernel
+        for (let di = -1; di <= 1; di++) {
+          for (let dj = -1; dj <= 1; dj++) {
+            const ni = f + di;
+            const nj = t + dj;
+            if (ni >= 0 && ni < spectrogram.nFreqBins && nj >= 0 && nj < spectrogram.nTimeFrames) {
+              const kernelValue = kernel[di + 1][dj + 1];
+              const value = spectrogram.getValue(ni, nj);
+              sum += value * kernelValue;
+              totalWeight += kernelValue;
+            }
+          }
+        }
+
+        const smoothedValue = sum / totalWeight;
+        const originalValue = spectrogram.getValue(f, t);
+        const finalValue = originalValue * (1 - weight) + smoothedValue * weight;
+        smoothedData[f * spectrogram.nTimeFrames + t] = finalValue;
+      }
+    }
+
+    return new Spectrogram(
+      smoothedData,
+      spectrogram.nFreqBins,
+      spectrogram.nTimeFrames,
+      spectrogram.sampleRate,
+      spectrogram.nFft,
+      spectrogram.hopLength
+    );
+  }
+
+  private applyOversampling(spectrogram: Spectrogram): Spectrogram {
+    // Oversample by interpolating time frames (2x oversampling)
+    const oversampleFactor = 2;
+    const newNTimeFrames = spectrogram.nTimeFrames * oversampleFactor;
+    const oversampledData = new Float32Array(spectrogram.nFreqBins * newNTimeFrames);
+
+    for (let f = 0; f < spectrogram.nFreqBins; f++) {
+      for (let t = 0; t < newNTimeFrames; t++) {
+        const originalTimeFrame = t / oversampleFactor;
+        const t0 = Math.floor(originalTimeFrame);
+        const t1 = Math.min(t0 + 1, spectrogram.nTimeFrames - 1);
+        const dt = originalTimeFrame - t0;
+
+        const v0 = spectrogram.getValue(f, t0);
+        const v1 = spectrogram.getValue(f, t1);
+        const interpolated = v0 * (1 - dt) + v1 * dt;
+
+        oversampledData[f * newNTimeFrames + t] = interpolated;
+      }
+    }
+
+    return new Spectrogram(
+      oversampledData,
+      spectrogram.nFreqBins,
+      newNTimeFrames,
+      spectrogram.sampleRate,
+      spectrogram.nFft,
+      spectrogram.hopLength / oversampleFactor // Adjusted hop length for oversampling
+    );
   }
 
   private drawAxes(
