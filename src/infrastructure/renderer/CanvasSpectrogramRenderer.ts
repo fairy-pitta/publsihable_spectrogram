@@ -132,12 +132,45 @@ export class CanvasSpectrogramRenderer implements IRenderer {
       }
     }
 
+    // Calculate time and frequency ranges
+    const totalDuration = finalSpectrogram.duration;
+    const maxFreq = finalSpectrogram.getFrequency(finalSpectrogram.nFreqBins - 1);
+    
+    const timeMin = options.timeMin ?? 0;
+    const timeMax = options.timeMax ?? totalDuration;
+    const freqMin = options.freqMin ?? 0;
+    const freqMax = options.freqMax ?? maxFreq;
+    
+    // Clamp ranges to valid values
+    const clampedTimeMin = Math.max(0, Math.min(timeMin, totalDuration));
+    const clampedTimeMax = Math.max(clampedTimeMin, Math.min(timeMax, totalDuration));
+    const clampedFreqMin = Math.max(0, Math.min(freqMin, maxFreq));
+    const clampedFreqMax = Math.max(clampedFreqMin, Math.min(freqMax, maxFreq));
+    
+    // Calculate time and frequency frame ranges
+    const timeRange = clampedTimeMax - clampedTimeMin;
+    const freqRange = clampedFreqMax - clampedFreqMin;
+    
+    // Convert time to time frame indices
+    const timeFrameMin = Math.max(0, Math.floor((clampedTimeMin / totalDuration) * finalSpectrogram.nTimeFrames));
+    const timeFrameMax = Math.min(finalSpectrogram.nTimeFrames - 1, Math.ceil((clampedTimeMax / totalDuration) * finalSpectrogram.nTimeFrames));
+    
+    // Convert frequency to frequency bin indices
+    const freqBinMin = Math.max(0, Math.floor((clampedFreqMin / maxFreq) * finalSpectrogram.nFreqBins));
+    const freqBinMax = Math.min(finalSpectrogram.nFreqBins - 1, Math.ceil((clampedFreqMax / maxFreq) * finalSpectrogram.nFreqBins));
+
     for (let y = 0; y < plotHeight; y++) {
       for (let x = 0; x < plotWidth; x++) {
-        // Use continuous coordinates for interpolation
-        // Invert Y axis: top (y=0) should show high frequencies, bottom (y=plotHeight) should show low frequencies
-        const freqBin = (1 - y / plotHeight) * finalSpectrogram.nFreqBins;
-        const timeFrame = (x / plotWidth) * finalSpectrogram.nTimeFrames;
+        // Map pixel coordinates to time and frequency ranges
+        // Time: x=0 maps to timeMin, x=plotWidth maps to timeMax
+        const normalizedTime = x / plotWidth;
+        const time = clampedTimeMin + normalizedTime * timeRange;
+        const timeFrame = (time / totalDuration) * finalSpectrogram.nTimeFrames;
+        
+        // Frequency: y=0 maps to freqMax (top), y=plotHeight maps to freqMin (bottom)
+        const normalizedFreq = 1 - y / plotHeight;
+        const freq = clampedFreqMin + normalizedFreq * freqRange;
+        const freqBin = (freq / maxFreq) * finalSpectrogram.nFreqBins;
 
         // Use bilinear interpolation for smoother rendering
         const dbValue = this.bilinearInterpolation(finalSpectrogram, freqBin, timeFrame);
@@ -178,7 +211,7 @@ export class CanvasSpectrogramRenderer implements IRenderer {
 
     // Draw axes
     if (options.showAxes) {
-      this.drawAxes(spectrogram, plotX, plotY, plotWidth, plotHeight, ctx);
+      this.drawAxes(spectrogram, plotX, plotY, plotWidth, plotHeight, ctx, options);
     }
 
     // Draw colorbar
@@ -320,7 +353,8 @@ export class CanvasSpectrogramRenderer implements IRenderer {
     y: number,
     width: number,
     height: number,
-    ctx: CanvasRenderingContext2D
+    ctx: CanvasRenderingContext2D,
+    options?: RenderOptions
   ): void {
     ctx.strokeStyle = '#000000';
     ctx.lineWidth = 1;
@@ -333,6 +367,24 @@ export class CanvasSpectrogramRenderer implements IRenderer {
     ctx.lineTo(x, y + height);
     ctx.stroke();
 
+    // Calculate time and frequency ranges
+    const totalDuration = spectrogram.duration;
+    const maxFreq = spectrogram.getFrequency(spectrogram.nFreqBins - 1);
+    
+    const timeMin = options?.timeMin ?? 0;
+    const timeMax = options?.timeMax ?? totalDuration;
+    const freqMin = options?.freqMin ?? 0;
+    const freqMax = options?.freqMax ?? maxFreq;
+    
+    // Clamp ranges to valid values
+    const clampedTimeMin = Math.max(0, Math.min(timeMin, totalDuration));
+    const clampedTimeMax = Math.max(clampedTimeMin, Math.min(timeMax, totalDuration));
+    const clampedFreqMin = Math.max(0, Math.min(freqMin, maxFreq));
+    const clampedFreqMax = Math.max(clampedFreqMin, Math.min(freqMax, maxFreq));
+    
+    const timeRange = clampedTimeMax - clampedTimeMin;
+    const freqRange = clampedFreqMax - clampedFreqMin;
+
     // Draw time axis labels
     ctx.font = '12px sans-serif';
     ctx.fillStyle = '#000000';
@@ -341,7 +393,7 @@ export class CanvasSpectrogramRenderer implements IRenderer {
 
     const numTimeTicks = 5;
     for (let i = 0; i <= numTimeTicks; i++) {
-      const t = (i / numTimeTicks) * spectrogram.duration;
+      const t = clampedTimeMin + (i / numTimeTicks) * timeRange;
       const xPos = x + (i / numTimeTicks) * width;
       ctx.fillText(t.toFixed(2) + 's', xPos, y + height + 5);
     }
@@ -350,11 +402,10 @@ export class CanvasSpectrogramRenderer implements IRenderer {
     ctx.textAlign = 'right';
     ctx.textBaseline = 'middle';
 
-    const maxFreq = spectrogram.getFrequency(spectrogram.nFreqBins - 1);
     const numFreqTicks = 5;
     for (let i = 0; i <= numFreqTicks; i++) {
-      const freq = (i / numFreqTicks) * maxFreq;
-      const yPos = y + height - (i / numFreqTicks) * height;
+      const freq = clampedFreqMin + (1 - i / numFreqTicks) * freqRange; // Invert: top is high freq
+      const yPos = y + (i / numFreqTicks) * height;
       ctx.fillText(freq.toFixed(0) + 'Hz', x - 5, yPos);
     }
   }

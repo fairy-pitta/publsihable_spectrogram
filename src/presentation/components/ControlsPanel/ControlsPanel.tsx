@@ -225,6 +225,57 @@ export function ControlsPanel({
           Oversampling
         </label>
       </div>
+
+      <h2>Axis Ranges</h2>
+      <div className="control-group">
+        <label>
+          Time Min (s):
+          <input
+            type="number"
+            value={renderOptions.timeMin ?? ''}
+            onChange={(e) => onRenderOptionsChange({ timeMin: e.target.value ? parseFloat(e.target.value) : undefined })}
+            min={0}
+            step={0.1}
+            placeholder="Auto"
+          />
+        </label>
+
+        <label>
+          Time Max (s):
+          <input
+            type="number"
+            value={renderOptions.timeMax ?? ''}
+            onChange={(e) => onRenderOptionsChange({ timeMax: e.target.value ? parseFloat(e.target.value) : undefined })}
+            min={0}
+            step={0.1}
+            placeholder="Auto"
+          />
+        </label>
+
+        <label>
+          Frequency Min (Hz):
+          <input
+            type="number"
+            value={renderOptions.freqMin ?? ''}
+            onChange={(e) => onRenderOptionsChange({ freqMin: e.target.value ? parseFloat(e.target.value) : undefined })}
+            min={0}
+            step={1}
+            placeholder="Auto"
+          />
+        </label>
+
+        <label>
+          Frequency Max (Hz):
+          <input
+            type="number"
+            value={renderOptions.freqMax ?? ''}
+            onChange={(e) => onRenderOptionsChange({ freqMax: e.target.value ? parseFloat(e.target.value) : undefined })}
+            min={0}
+            step={1}
+            placeholder="Auto"
+          />
+        </label>
+      </div>
     </div>
   );
 }

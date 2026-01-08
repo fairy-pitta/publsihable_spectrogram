@@ -10,6 +10,10 @@ export interface RenderOptions {
   showColorbar: boolean;
   dbMin: number;
   dbMax: number;
+  timeMin?: number; // Minimum time in seconds (optional)
+  timeMax?: number; // Maximum time in seconds (optional)
+  freqMin?: number; // Minimum frequency in Hz (optional)
+  freqMax?: number; // Maximum frequency in Hz (optional)
 }
 
 export interface IRenderer {

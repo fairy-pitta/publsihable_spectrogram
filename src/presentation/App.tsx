@@ -26,6 +26,10 @@ function App() {
     dbMax: 0,
     smoothing: 0.0,
     oversampling: false,
+    timeMin: undefined,
+    timeMax: undefined,
+    freqMin: undefined,
+    freqMax: undefined,
   });
 
   const [stftParams, setSTFTParams] = useState<STFTParameters>({
