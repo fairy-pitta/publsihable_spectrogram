@@ -45,7 +45,38 @@ export class WasmSTFTProcessor implements ISTFTProcessor {
     // Apply dB conversion with ref and top_db
     const refDb = params.refDb ?? 0.0; // 0.0 means use maximum as reference
     const topDb = params.topDb ?? 80.0; // Default top_db is 80
-    const dbData = this.processor.to_db(spectrumData, refDb, topDb, params.dbMin, params.dbMax);
+    let dbData = this.processor.to_db(spectrumData, refDb, topDb, params.dbMin, params.dbMax) as Float32Array;
+
+    // Safety net:
+    // If wasm-side dB conversion returns near-constant values (e.g., all 0dB),
+    // recompute dB here to avoid a fully-saturated (all-yellow) spectrogram.
+    {
+      let min = Infinity;
+      let max = -Infinity;
+      for (let i = 0; i < dbData.length; i++) {
+        const v = dbData[i];
+        if (!Number.isFinite(v)) continue;
+        if (v < min) min = v;
+        if (v > max) max = v;
+      }
+      if (!Number.isFinite(min) || !Number.isFinite(max) || Math.abs(max - min) < 1e-3) {
+        const refValue = spectrumData.reduce((a, b) => (b > a ? b : a), 0);
+        const factor = params.magnitudeType === 'power' ? 10.0 : 20.0;
+        const recomputed = new Float32Array(spectrumData.length);
+        const clipFloor = -topDb;
+        const denom = refValue > 0 ? refValue : 1.0;
+        for (let i = 0; i < spectrumData.length; i++) {
+          const m = spectrumData[i];
+          let db = m > 0 ? factor * Math.log10(m / denom) : params.dbMin;
+          if (!Number.isFinite(db)) db = params.dbMin;
+          db = Math.max(db, clipFloor);
+          db = Math.min(db, params.dbMax);
+          db = Math.max(db, params.dbMin);
+          recomputed[i] = db;
+        }
+        dbData = recomputed;
+      }
+    }
 
     // Store sample rate in params if not already set
     const paramsWithSampleRate = {

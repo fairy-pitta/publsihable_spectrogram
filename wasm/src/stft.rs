@@ -96,30 +96,29 @@ impl STFTProcessor {
         output
     }
 
-    pub fn to_db(&self, magnitude_spectrum: &[f32], ref_db: f32, top_db: f32, min_db: f32, max_db: f32) -> Vec<f32> {
-        // Calculate reference value: if ref_db is 0.0, use maximum magnitude as reference
+    pub fn to_db(
+        &self,
+        magnitude_spectrum: &[f32],
+        ref_db: f32,
+        top_db: f32,
+        min_db: f32,
+        max_db: f32,
+    ) -> Vec<f32> {
+        // Reference amplitude:
+        // - ref_db == 0.0: use max magnitude as reference
+        // - otherwise: interpret ref_db as amplitude in dBFS-like scale and convert to amplitude
         let max_magnitude = magnitude_spectrum.iter().fold(0.0f32, |a, &b| a.max(b));
         let ref_value = if ref_db == 0.0 {
-            if max_magnitude > 0.0 {
-                max_magnitude
-            } else {
-                1.0
-            }
+            if max_magnitude > 0.0 { max_magnitude } else { 1.0 }
         } else {
             10.0f32.powf(ref_db / 20.0)
         };
-        
-        // Calculate reference dB level for top_db clipping
-        let ref_db_level = if ref_db == 0.0 {
-            if max_magnitude > 0.0 {
-                20.0 * max_magnitude.log10()
-            } else {
-                max_db
-            }
-        } else {
-            ref_db
-        };
-        
+
+        // IMPORTANT:
+        // db here is computed *relative to ref_value*, so the reference level is always 0 dB.
+        // top_db clipping must therefore clip at -top_db (not using absolute log10 of max magnitude).
+        let clip_floor = -top_db;
+
         magnitude_spectrum
             .iter()
             .map(|&magnitude| {
@@ -128,10 +127,7 @@ impl STFTProcessor {
                 } else {
                     min_db
                 };
-                // Apply top_db clipping: clip values that are more than top_db below the reference
-                // top_db means "clip values more than top_db below the reference"
-                let clipped_db = db.max(ref_db_level - top_db).min(max_db).max(min_db);
-                clipped_db
+                db.max(clip_floor).min(max_db).max(min_db)
             })
             .collect()
     }
