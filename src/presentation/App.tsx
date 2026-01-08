@@ -120,23 +120,25 @@ function App() {
       </header>
 
       <div className="app-content">
-        <div className={`sidebar-left ${controlsPanelCollapsed ? 'collapsed' : ''}`}>
+        <div className="sidebar-container-left">
           <button 
-            className="sidebar-toggle"
+            className="sidebar-toggle sidebar-toggle-left"
             onClick={() => setControlsPanelCollapsed(!controlsPanelCollapsed)}
             title={controlsPanelCollapsed ? 'Expand Controls' : 'Collapse Controls'}
           >
             <i className={`fas ${controlsPanelCollapsed ? 'fa-chevron-right' : 'fa-chevron-left'}`}></i>
           </button>
-          {!controlsPanelCollapsed && (
-            <ControlsPanel
-              stftParams={stftParams}
-              renderOptions={renderOptions}
-              onSTFTParamsChange={handleSTFTParamsChange}
-              onRenderOptionsChange={handleRenderOptionsChange}
-              onRecompute={handleRecompute}
-            />
-          )}
+          <div className={`sidebar-left ${controlsPanelCollapsed ? 'collapsed' : ''}`}>
+            {!controlsPanelCollapsed && (
+              <ControlsPanel
+                stftParams={stftParams}
+                renderOptions={renderOptions}
+                onSTFTParamsChange={handleSTFTParamsChange}
+                onRenderOptionsChange={handleRenderOptionsChange}
+                onRecompute={handleRecompute}
+              />
+            )}
+          </div>
         </div>
 
         <div className="main-view">
@@ -155,27 +157,30 @@ function App() {
             />
           ) : (
             <div className="empty-state">
+              <i className="fas fa-music"></i>
               <p>Upload an audio file to get started</p>
             </div>
           )}
         </div>
 
-        <div className={`sidebar-right ${annotationEditorCollapsed ? 'collapsed' : ''}`}>
+        <div className="sidebar-container-right">
           <button 
-            className="sidebar-toggle"
+            className="sidebar-toggle sidebar-toggle-right"
             onClick={() => setAnnotationEditorCollapsed(!annotationEditorCollapsed)}
             title={annotationEditorCollapsed ? 'Expand Annotations' : 'Collapse Annotations'}
           >
             <i className={`fas ${annotationEditorCollapsed ? 'fa-chevron-left' : 'fa-chevron-right'}`}></i>
           </button>
-          {!annotationEditorCollapsed && (
-            <AnnotationEditor 
-              annotationService={annotationService}
-              addAnnotation={addAnnotation}
-              updateAnnotation={updateAnnotation}
-              spectrogramCenter={spectrogramCenter}
-            />
-          )}
+          <div className={`sidebar-right ${annotationEditorCollapsed ? 'collapsed' : ''}`}>
+            {!annotationEditorCollapsed && (
+              <AnnotationEditor 
+                annotationService={annotationService}
+                addAnnotation={addAnnotation}
+                updateAnnotation={updateAnnotation}
+                spectrogramCenter={spectrogramCenter}
+              />
+            )}
+          </div>
         </div>
       </div>
 

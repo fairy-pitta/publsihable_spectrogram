@@ -20,6 +20,9 @@ export function ControlsPanel({
 }: ControlsPanelProps) {
   return (
     <div className="controls-panel">
+      <button onClick={onRecompute} className="recompute-button">
+        Recompute
+      </button>
       <h2>STFT Parameters</h2>
       <div className="control-group">
         <label>
@@ -127,10 +130,6 @@ export function ControlsPanel({
           Use Log Frequency Scale
         </label>
       </div>
-
-      <button onClick={onRecompute} className="recompute-button">
-        Recompute
-      </button>
 
       <h2>Display Options</h2>
       <div className="control-group">

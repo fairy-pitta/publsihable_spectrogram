@@ -242,36 +242,81 @@ export function AnnotationEditor({ annotationService: externalAnnotationService,
 
       <div className="annotations-list">
         <h3>Current Annotations</h3>
-        {annotationService.getAnnotations().map((annotation) => (
-          <div key={annotation.id} className="annotation-item">
-            <span>
-              {annotation.type} ({Math.round(annotation.position.x)}, {Math.round(annotation.position.y)})
-              {annotation.properties.color && (
-                <span
-                  style={{
-                    display: 'inline-block',
-                    width: '15px',
-                    height: '15px',
-                    backgroundColor: annotation.properties.color as string,
-                    marginLeft: '8px',
-                    border: '1px solid #ccc',
-                    verticalAlign: 'middle',
-                  }}
-                />
-              )}
-            </span>
-            <div style={{ display: 'flex', gap: '5px' }}>
-              <button onClick={() => handleEdit(annotation)}>Edit</button>
-              <button onClick={() => { 
-                annotationService.removeAnnotation(annotation.id); 
-                if (editingAnnotationId === annotation.id) {
-                  handleCancelEdit();
-                }
-                forceUpdate({}); 
-              }}>Remove</button>
-            </div>
+        {annotationService.getAnnotations().length === 0 ? (
+          <div className="annotations-empty">
+            <p>No annotations yet</p>
+            <p className="annotations-empty-hint">Add an annotation using the form above</p>
           </div>
-        ))}
+        ) : (
+          <div className="annotations-grid">
+            {annotationService.getAnnotations().map((annotation) => (
+              <div 
+                key={annotation.id} 
+                className={`annotation-card ${editingAnnotationId === annotation.id ? 'editing' : ''}`}
+              >
+                <div className="annotation-card-header">
+                  <div className="annotation-type-badge">
+                    <i className={`fas ${annotation.type === AnnotationType.Text ? 'fa-font' : annotation.type === AnnotationType.Arrow ? 'fa-arrow-right' : 'fa-square'}`}></i>
+                    <span>{annotation.type}</span>
+                  </div>
+                  {annotation.properties.color && (
+                    <div 
+                      className="annotation-color-badge"
+                      style={{ backgroundColor: annotation.properties.color as string }}
+                      title={`Color: ${annotation.properties.color}`}
+                    />
+                  )}
+                </div>
+                <div className="annotation-card-content">
+                  {annotation.type === AnnotationType.Text && annotation.properties.text && (
+                    <div className="annotation-text-preview">
+                      "{annotation.properties.text}"
+                    </div>
+                  )}
+                  {annotation.type === AnnotationType.Arrow && (
+                    <div className="annotation-details">
+                      <span>→ ({Math.round(annotation.position.x)}, {Math.round(annotation.position.y)}) to ({Math.round((annotation.properties.x2 as number) || 0)}, {Math.round((annotation.properties.y2 as number) || 0)})</span>
+                    </div>
+                  )}
+                  {annotation.type === AnnotationType.Rectangle && (
+                    <div className="annotation-details">
+                      <span>Size: {Math.round((annotation.properties.width as number) || 0)} × {Math.round((annotation.properties.height as number) || 50)}</span>
+                    </div>
+                  )}
+                  {annotation.type === AnnotationType.Text && !annotation.properties.text && (
+                    <div className="annotation-details">
+                      <span>Position: ({Math.round(annotation.position.x)}, {Math.round(annotation.position.y)})</span>
+                    </div>
+                  )}
+                </div>
+                <div className="annotation-card-actions">
+                  <button 
+                    className="annotation-action-btn edit-btn"
+                    onClick={() => handleEdit(annotation)}
+                    title="Edit annotation"
+                  >
+                    <i className="fas fa-edit"></i>
+                    <span>Edit</span>
+                  </button>
+                  <button 
+                    className="annotation-action-btn delete-btn"
+                    onClick={() => { 
+                      annotationService.removeAnnotation(annotation.id); 
+                      if (editingAnnotationId === annotation.id) {
+                        handleCancelEdit();
+                      }
+                      forceUpdate({}); 
+                    }}
+                    title="Remove annotation"
+                  >
+                    <i className="fas fa-trash"></i>
+                    <span>Delete</span>
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

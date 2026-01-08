@@ -1,6 +1,5 @@
 .annotation-editor {
-  padding: var(--spacing-xl);
-  padding-top: 60px;
+  padding: var(--spacing-lg) var(--spacing-md);
   background: var(--pastel-surface);
   overflow-y: auto;
   height: 100%;
@@ -107,55 +106,155 @@
 }
 
 .annotations-list h3 {
-  font-size: 14px;
-  margin-bottom: 12px;
+  font-size: 16px;
+  margin-bottom: var(--spacing-md);
   color: var(--pastel-text);
-  font-weight: 500;
+  font-weight: 600;
 }
 
-.annotation-item {
+.annotations-empty {
+  text-align: center;
+  padding: var(--spacing-xl);
+  color: var(--pastel-text-light);
+}
+
+.annotations-empty p {
+  margin: 0;
+  font-size: 14px;
+}
+
+.annotations-empty-hint {
+  font-size: 12px !important;
+  margin-top: var(--spacing-sm) !important;
+  opacity: 0.7;
+}
+
+.annotations-grid {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: var(--spacing-md);
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+.annotation-card {
   background: var(--pastel-background);
   border: 1px solid var(--pastel-border);
-  border-radius: var(--radius-sm);
-  margin-bottom: var(--spacing-sm);
+  border-radius: var(--radius-md);
+  padding: var(--spacing-md);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 0 1px 3px var(--pastel-shadow-soft);
+  box-shadow: 0 2px 4px var(--pastel-shadow-soft);
 }
 
-.annotation-item:hover {
+.annotation-card:hover {
   background: var(--pastel-background-hover);
   border-color: var(--pastel-primary);
   box-shadow: 0 4px 12px var(--pastel-shadow);
-  transform: translateX(4px);
+  transform: translateY(-2px);
 }
 
-.annotation-item span {
+.annotation-card.editing {
+  border-color: var(--pastel-primary);
+  background: var(--pastel-accent);
+  box-shadow: 0 0 0 2px var(--pastel-primary), 0 4px 12px var(--pastel-shadow);
+}
+
+.annotation-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--spacing-sm);
+}
+
+.annotation-type-badge {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--spacing-xs);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--pastel-text);
+  text-transform: capitalize;
+}
+
+.annotation-type-badge i {
+  font-size: 14px;
+  opacity: 0.8;
+}
+
+.annotation-color-badge {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 2px solid var(--pastel-border);
+  box-shadow: 0 1px 3px var(--pastel-shadow-soft);
+  flex-shrink: 0;
+}
+
+.annotation-card-content {
+  margin-bottom: var(--spacing-sm);
+  min-height: 20px;
+}
+
+.annotation-text-preview {
   font-size: 13px;
   color: var(--pastel-text);
+  font-style: italic;
+  padding: var(--spacing-xs) 0;
+  word-break: break-word;
 }
 
-.annotation-item button {
-  padding: 6px 12px;
-  background: var(--pastel-secondary);
-  color: var(--pastel-text);
-  border: 1px solid var(--pastel-border);
-  border-radius: 6px;
+.annotation-details {
   font-size: 12px;
+  color: var(--pastel-text-light);
+  padding: var(--spacing-xs) 0;
+}
+
+.annotation-card-actions {
+  display: flex;
+  gap: var(--spacing-xs);
+  margin-top: var(--spacing-sm);
+  padding-top: var(--spacing-sm);
+  border-top: 1px solid var(--pastel-border);
+}
+
+.annotation-action-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-xs);
+  padding: 8px 12px;
+  border: none;
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+  font-weight: 500;
   cursor: pointer;
   transition: all 0.2s ease;
-  margin-left: 4px;
+  box-shadow: 0 1px 3px var(--pastel-shadow-soft);
 }
 
-.annotation-item button:hover {
-  background: var(--pastel-secondary-hover);
+.annotation-action-btn i {
+  font-size: 11px;
+}
+
+.annotation-action-btn.edit-btn {
+  background: var(--pastel-primary);
+  color: var(--pastel-text);
+}
+
+.annotation-action-btn.edit-btn:hover {
+  background: var(--pastel-primary-hover);
   transform: translateY(-1px);
+  box-shadow: 0 2px 6px var(--pastel-shadow);
+}
+
+.annotation-action-btn.delete-btn {
+  background: var(--pastel-error-bg);
+  color: var(--pastel-error-text);
+}
+
+.annotation-action-btn.delete-btn:hover {
+  background: var(--pastel-error-border);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 6px var(--pastel-shadow);
 }
 
 .color-picker {

@@ -1,10 +1,10 @@
 .controls-panel {
-  padding: var(--spacing-xl);
-  padding-top: 60px;
+  padding: var(--spacing-lg) var(--spacing-md);
   background: var(--pastel-surface);
   overflow-y: auto;
   height: 100%;
   flex: 1;
+  position: relative;
 }
 
 .controls-panel h2 {
@@ -115,15 +115,15 @@
 
 .recompute-button {
   width: 100%;
-  padding: 14px;
+  padding: 12px;
   background: var(--pastel-primary);
   color: var(--pastel-text);
   border: none;
   border-radius: var(--radius-md);
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 600;
   cursor: pointer;
-  margin-bottom: var(--spacing-xl);
+  margin-bottom: var(--spacing-lg);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   box-shadow: 0 2px 8px var(--pastel-shadow-soft);
   position: relative;
