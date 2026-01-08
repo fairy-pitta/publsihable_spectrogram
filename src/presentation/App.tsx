@@ -177,10 +177,10 @@ function App() {
           <div className={`sidebar-right ${annotationEditorCollapsed ? 'collapsed' : ''}`}>
             {!annotationEditorCollapsed && (
               <AnnotationEditor 
-                annotationService={annotationService}
-                addAnnotation={addAnnotation}
-                updateAnnotation={updateAnnotation}
-                spectrogramCenter={spectrogramCenter}
+                annotationService={annotationService ?? undefined}
+                addAnnotation={addAnnotation ?? undefined}
+                updateAnnotation={updateAnnotation ?? undefined}
+                spectrogramCenter={spectrogramCenter ?? undefined}
               />
             )}
           </div>

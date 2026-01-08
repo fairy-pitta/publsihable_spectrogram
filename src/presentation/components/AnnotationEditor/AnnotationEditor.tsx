@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Annotation, AnnotationType } from '@domain/entities/Annotation';
 import { AnnotationService } from '@application/services/AnnotationService';
 import './AnnotationEditor.css';

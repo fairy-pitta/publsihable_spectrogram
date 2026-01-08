@@ -1,4 +1,3 @@
-import React from 'react';
 import { STFTParameters } from '@domain/interfaces/ISTFTProcessor';
 import { RenderOptions } from '@domain/interfaces/IRenderer';
 import './ControlsPanel.css';
