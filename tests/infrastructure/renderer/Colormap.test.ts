@@ -50,16 +50,15 @@ describe('Colormap', () => {
     expect(color1[0]).toBeCloseTo(0.5, 5);
     expect(color2[0]).toBeCloseTo(0.5, 5);
 
-    // Test with non-midpoint value
-    const color3 = Colormap.applyContrast([0.7, 0.7, 0.7], 0.5);
-    const color4 = Colormap.applyContrast([0.7, 0.7, 0.7], 2.0);
+    // Test with non-midpoint value (0.6 is closer to midpoint, less likely to clamp)
+    const color3 = Colormap.applyContrast([0.6, 0.6, 0.6], 0.5);
+    const color4 = Colormap.applyContrast([0.6, 0.6, 0.6], 2.0);
 
     // Lower contrast (0.5) should bring values closer to 0.5
-    expect(color3[0]).toBeLessThan(0.7);
+    expect(color3[0]).toBeLessThan(0.6);
     expect(color3[0]).toBeGreaterThan(0.5);
     // Higher contrast (2.0) should push values further from 0.5
-    // But it might be clamped to 1.0, so check it's >= 0.7
-    expect(color4[0]).toBeGreaterThanOrEqual(0.7);
+    expect(color4[0]).toBeGreaterThan(0.6);
     expect(color4[0]).toBeLessThanOrEqual(1.0);
   });
 
