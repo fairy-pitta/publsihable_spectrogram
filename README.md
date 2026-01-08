@@ -65,15 +65,23 @@ This project is a fully browser-based spectrogram generation system. It converts
 ### Prerequisites
 
 - Node.js 18+
-- Rust (wasm-pack required)
+- Rust (latest stable version)
+- wasm-pack (install with: `cargo install wasm-pack`)
 
 ### Installation
 
 ```bash
-# 1. Install dependencies (run first)
+# 1. Install Rust (if not already installed)
+# Visit https://rustup.rs/ or run:
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+
+# 2. Install wasm-pack
+cargo install wasm-pack
+
+# 3. Install Node.js dependencies
 npm install
 
-# 2. Build WASM module (after npm install)
+# 4. Build WASM module (after npm install)
 npm run build:wasm
 ```
 
@@ -81,6 +89,11 @@ npm run build:wasm
 - Running `npm install` is required, otherwise you'll get `vite: command not found` error.
 - The WASM module must be built before running `npm run build` or `npm run dev`.
 - The `prebuild` script automatically builds WASM before TypeScript compilation.
+- If `wasm-pack` is not found, ensure it's installed and in your PATH (typically `~/.cargo/bin`).
+- For CI/CD environments, you may need to add `~/.cargo/bin` to PATH:
+  ```bash
+  export PATH="$HOME/.cargo/bin:$PATH"
+  ```
 
 ### Development
 
