@@ -1,5 +1,5 @@
 {
-  "name": "spectrogram-generator",
+  "name": "spectrogram",
   "compatibility_date": "2026-01-08",
   "assets": {
     "directory": "./dist"
