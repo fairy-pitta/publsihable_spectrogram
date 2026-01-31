@@ -24,6 +24,8 @@ if (typeof HTMLCanvasElement !== 'undefined') {
         font: '10px sans-serif',
         textAlign: 'left' as CanvasTextAlign,
         textBaseline: 'alphabetic' as CanvasTextBaseline,
+        imageSmoothingEnabled: true,
+        imageSmoothingQuality: 'low' as ImageSmoothingQuality,
         
         clearRect: (x: number, y: number, w: number, h: number) => {
           // Clear the specified area
@@ -80,6 +82,10 @@ if (typeof HTMLCanvasElement !== 'undefined') {
         
         fillText: (text: string, x: number, y: number) => {
           // Draw text (simplified - just mark that text was drawn)
+        },
+
+        drawImage: (..._args: any[]) => {
+          // No-op for tests; enough for export paths that rely on drawImage.
         },
         
         createImageData: (widthOrImageData: number | ImageData, height?: number): ImageData => {

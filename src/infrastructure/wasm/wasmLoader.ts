@@ -17,7 +17,11 @@ export async function loadWasm(): Promise<WasmModule> {
     // This will be the actual WASM module after building with wasm-pack
     // The type definition file (spectrogram_wasm.d.ts) is committed to the repo
     // to allow TypeScript to resolve the import during type checking
-    const module = await import('./pkg/spectrogram_wasm');
+    // NOTE: Keep the path non-literal so test/build pipelines that don't have
+    // the generated `pkg/` outputs can still run and handle the runtime error.
+    // Vite/Vitest may try to resolve literal dynamic imports at transform time.
+    const modulePath = './pkg/' + 'spectrogram_wasm';
+    const module = await import(/* @vite-ignore */ modulePath);
     await module.default();
     wasmModule = module as unknown as WasmModule;
     return wasmModule;
